@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>القرآن الكريم - تطوير شامل</title>
+    <title>القرآن الكريم</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -13,7 +13,7 @@
             background-color: #f8f9fa;
         }
         .section-title {
-            color: #28a745;
+            color: #a72828;
             margin-bottom: 20px;
         }
         .list-group-item {
@@ -41,12 +41,9 @@
     <div class="container my-5">
         <h1 class="text-center section-title">القرآن الكريم</h1>
 
-        <!-- البحث عن السور -->
         <div class="search-bar">
             <input type="text" id="searchInput" class="form-control" placeholder="ابحث عن سورة..." oninput="searchSurah()">
         </div>
-
-        <!-- اختيار القارئ -->
         <div class="mb-4">
             <label for="reciterSelect" class="form-label">اختر القارئ:</label>
             <select id="reciterSelect" class="form-select">
@@ -57,12 +54,12 @@
             </select>
         </div>
 
-        <!-- قائمة السور -->
+       
         <ul id="surahList" class="list-group">
-            <!-- سيتم تحميل السور هنا -->
+           
         </ul>
 
-        <!-- مشغل الصوت -->
+      
         <div id="audioPlayer" class="mt-4 text-center">
             <audio id="audio" controls style="width: 100%;"></audio>
             <div class="audio-controls">
@@ -71,10 +68,10 @@
             </div>
         </div>
 
-        <!-- عرض نص السورة -->
+       
         <div id="surahText" class="mt-4 p-3 bg-light border rounded"></div>
 
-        <!-- عرض التفسير -->
+        
         <div id="surahTafsir" class="mt-4 p-3 bg-light border rounded"></div>
     </div>
 
@@ -82,7 +79,7 @@
         let isRepeat = false;
         let isAutoPlay = false;
 
-        // تحميل قائمة السور من API
+       
         async function loadQuran() {
             try {
                 const response = await fetch('https://api.alquran.cloud/v1/surah');
@@ -103,19 +100,17 @@
                     </li>
                 `).join('');
             } catch (error) {
-                console.error("Error fetching surah data:", error);
+                console.error("Error fetching surah data:", error);}
             }
-        }
+        
 
-        // تشغيل السورة بالكامل
+      
         async function playSurah(surahNumber) {
             const reciter = document.getElementById('reciterSelect').value;
             const audioUrl = `https://cdn.islamic.network/quran/audio-surah/128/${reciter}/${surahNumber}.mp3`;
 
             const audioPlayer = document.getElementById('audio');
             audioPlayer.src = audioUrl;
-
-            // تحقق من وجود الملف الصوتي
             try {
                 const response = await fetch(audioUrl, { method: 'HEAD' });
                 if (!response.ok) {
@@ -124,8 +119,6 @@
                 }
                 audioPlayer.play();
                 loadSurahText(surahNumber);
-
-                // حدث انتهاء الصوت
                 audioPlayer.onended = () => {
                     if (isRepeat) {
                         audioPlayer.play();
@@ -138,7 +131,6 @@
             }
         }
 
-        // تنزيل السورة
         function downloadSurah(surahNumber) {
             const reciter = document.getElementById('reciterSelect').value;
             const downloadUrl = `https://cdn.islamic.network/quran/audio-surah/128/${reciter}/${surahNumber}.mp3`;
@@ -148,7 +140,6 @@
             anchor.click();
         }
 
-        // تحميل نص السورة
         async function loadSurahText(surahNumber) {
             try {
                 const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`);
@@ -160,9 +151,7 @@
             } catch (error) {
                 console.error("Error fetching surah text:", error);
             }
-        }
-
-        // تحميل التفسير
+        } 
         async function loadTafsir(surahNumber) {
             try {
                 const response = await fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.asad`);
@@ -176,19 +165,19 @@
             }
         }
 
-        // تشغيل متتابع
+        
         function toggleAutoPlay() {
             isAutoPlay = !isAutoPlay;
             alert(isAutoPlay ? "تشغيل متتابع مفعّل" : "تشغيل متتابع متوقف");
         }
 
-        // تكرار السورة
+       
         function toggleRepeat() {
             isRepeat = !isRepeat;
             alert(isRepeat ? "التكرار مفعّل" : "التكرار متوقف");
         }
 
-        // البحث عن السور
+       
         function searchSurah() {
             const searchValue = document.getElementById('searchInput').value.toLowerCase();
             const surahItems = document.querySelectorAll('#surahList .list-group-item');
@@ -199,7 +188,7 @@
             });
         }
 
-        // تحميل السور عند فتح الصفحة
+     
         window.onload = loadQuran;
     </script>
 
