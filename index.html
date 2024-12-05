@@ -256,7 +256,8 @@ button:focus {
 
         async function playSurah(surahNumber) {
             const reciter = document.getElementById('reciterSelect').value;
-        const audioUrl = `https://verses-api.herokuapp.com/${surah}/${ayahNumber}/audio`;
+      const audioUrl = `https://cdn.islamic.network/quran/audio-surah/128/${reciter}/${surahNumber}.mp3`;
+
 
     
             const audioPlayer = document.getElementById('audio');
