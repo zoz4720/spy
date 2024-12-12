@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الجاسوس - أونلاين</title>
+    <title>لعبة الجاسوس - مطورة</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
         // Firebase configuration
@@ -24,9 +25,36 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
         let roomId = null;
         let playerName = null;
+        let userId = null;
+
+        // Google Sign-In
+        function signInWithGoogle() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    playerName = user.displayName;
+                    userId = user.uid;
+                    document.getElementById("loginSection").style.display = "none";
+                    document.getElementById("createJoinSection").style.display = "block";
+                    document.getElementById("welcomeMessage").textContent = `مرحبًا ${playerName}!`;
+                })
+                .catch((error) => {
+                    console.error("Error during Google Sign-In:", error);
+                });
+        }
+
+        // Sign out
+        function signOutUser() {
+            signOut(auth).then(() => {
+                alert("تم تسجيل الخروج بنجاح");
+                location.reload();
+            });
+        }
 
         // Create a game room
         function createRoom() {
@@ -35,16 +63,18 @@
 
             // Initialize the room data
             set(roomRef, {
-                players: {},
+                players: {
+                    [userId]: {
+                        name: playerName,
+                        ready: false
+                    }
+                },
                 spyIndex: null,
                 gameStarted: false,
                 chat: {}
             });
 
-            document.getElementById("createRoomSection").style.display = "none";
-            document.getElementById("joinRoomSection").style.display = "none";
-            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
-            document.getElementById("gameLobby").style.display = "block";
+            displayLobby();
         }
 
         // Join a game room
@@ -55,24 +85,19 @@
                 return;
             }
 
-            playerName = document.getElementById("playerNameInput").value.trim();
-            if (!playerName) {
-                alert("يرجى إدخال اسمك!");
-                return;
-            }
+            const playerRef = ref(db, `rooms/${roomId}/players/${userId}`);
+            set(playerRef, { name: playerName, ready: false });
 
-            // Add player to the room
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            set(playerRef, { ready: false });
-
-            document.getElementById("createRoomSection").style.display = "none";
-            document.getElementById("joinRoomSection").style.display = "none";
-            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
-            document.getElementById("gameLobby").style.display = "block";
-
-            // Listen for changes in the room
+            displayLobby();
             listenToRoom();
             listenToChat();
+        }
+
+        // Display lobby
+        function displayLobby() {
+            document.getElementById("createJoinSection").style.display = "none";
+            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
+            document.getElementById("gameLobby").style.display = "block";
         }
 
         // Listen for room updates
@@ -83,9 +108,10 @@
                 const playersList = document.getElementById("playersList");
                 playersList.innerHTML = "";
 
-                for (const player in roomData.players) {
+                for (const playerId in roomData.players) {
+                    const player = roomData.players[playerId];
                     const li = document.createElement("li");
-                    li.textContent = `${player} ${roomData.players[player].ready ? "✅" : "❌"}`;
+                    li.textContent = `${player.name} ${player.ready ? "✅" : "❌"}`;
                     playersList.appendChild(li);
                 }
 
@@ -97,14 +123,13 @@
 
         // Mark player as ready
         function markReady() {
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+            const playerRef = ref(db, `rooms/${roomId}/players/${userId}`);
             update(playerRef, { ready: true });
 
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, (snapshot) => {
                 const roomData = snapshot.val();
 
-                // Check if all players are ready
                 const allReady = Object.values(roomData.players).every(player => player.ready);
                 if (allReady && !roomData.gameStarted) {
                     const spyIndex = Math.floor(Math.random() * Object.keys(roomData.players).length);
@@ -121,44 +146,19 @@
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, (snapshot) => {
                 const roomData = snapshot.val();
-                const players = Object.keys(roomData.players);
+                const players = Object.values(roomData.players);
                 const roleList = document.getElementById("roles");
                 roleList.innerHTML = "";
 
                 players.forEach((player, index) => {
                     const li = document.createElement("li");
-                    li.textContent = `${player}: ${index === spyIndex ? "جاسوس" : "لاعب عادي"}`;
+                    li.textContent = `${player.name}: ${index === spyIndex ? "جاسوس" : "لاعب عادي"}`;
                     roleList.appendChild(li);
                 });
-
-                // Timer logic
-                let timeLeft = 60; // Set the game time in seconds
-                const timerElement = document.createElement("h3");
-                timerElement.textContent = `الوقت المتبقي: ${timeLeft} ثانية`;
-                document.getElementById("gameSection").appendChild(timerElement);
-
-                const timer = setInterval(() => {
-                    timeLeft--;
-                    timerElement.textContent = `الوقت المتبقي: ${timeLeft} ثانية`;
-
-                    if (timeLeft <= 0) {
-                        clearInterval(timer);
-                        alert("انتهى الوقت! الجاسوس فاز 🎉");
-                        resetGame();
-                    }
-                }, 1000);
             });
         }
 
-        // Reset game logic
-        function resetGame() {
-            const roomRef = ref(db, `rooms/${roomId}`);
-            update(roomRef, { gameStarted: false, spyIndex: null });
-            document.getElementById("gameSection").style.display = "none";
-            document.getElementById("gameLobby").style.display = "block";
-        }
-
-        // Send a chat message
+        // Chat functionality
         function sendChatMessage() {
             const message = document.getElementById("chatInput").value.trim();
             if (message) {
@@ -168,7 +168,6 @@
             }
         }
 
-        // Listen to chat messages
         function listenToChat() {
             const chatRef = ref(db, `rooms/${roomId}/chat`);
             onValue(chatRef, (snapshot) => {
@@ -186,6 +185,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("signInBtn").addEventListener("click", signInWithGoogle);
+            document.getElementById("signOutBtn").addEventListener("click", signOutUser);
             document.getElementById("createRoomBtn").addEventListener("click", createRoom);
             document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
             document.getElementById("markReadyBtn").addEventListener("click", markReady);
@@ -202,7 +203,7 @@
         .section {
             display: none;
         }
-        #createRoomSection, #joinRoomSection {
+        #loginSection {
             display: block;
         }
         #chatMessages {
@@ -216,18 +217,20 @@
     </style>
 </head>
 <body>
-    <h1>لعبة الجاسوس - أونلاين</h1>
+    <h1>لعبة الجاسوس - مطورة</h1>
 
-    <div id="createRoomSection" class="section">
-        <h2>إنشاء غرفة جديدة</h2>
-        <button id="createRoomBtn" class="btn btn-primary">إنشاء الغرفة</button>
+    <div id="loginSection" class="section">
+        <h2>تسجيل الدخول</h2>
+        <button id="signInBtn" class="btn btn-primary">تسجيل الدخول باستخدام Google</button>
     </div>
 
-    <div id="joinRoomSection" class="section">
-        <h2>الانضمام إلى غرفة</h2>
-        <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
-        <input type="text" id="playerNameInput" placeholder="اسم اللاعب" class="form-control mt-2">
-        <button id="joinRoomBtn" class="btn btn-success mt-2">انضمام</button>
+    <div id="createJoinSection" class="section">
+        <h2 id="welcomeMessage"></h2>
+        <button id="createRoomBtn" class="btn btn-success">إنشاء غرفة جديدة</button>
+        <div class="mt-3">
+            <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
+            <button id="joinRoomBtn" class="btn btn-info mt-2">الانضمام إلى غرفة</button>
+        </div>
     </div>
 
     <div id="gameLobby" class="section">
