@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لعبة الجاسوس - أونلاين</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
@@ -37,6 +38,7 @@
                 players: {},
                 spyIndex: null,
                 gameStarted: false,
+                chat: {}
             });
 
             document.getElementById("createRoomSection").style.display = "none";
@@ -70,6 +72,7 @@
 
             // Listen for changes in the room
             listenToRoom();
+            listenToChat();
         }
 
         // Listen for room updates
@@ -115,18 +118,70 @@
             document.getElementById("gameLobby").style.display = "none";
             document.getElementById("gameSection").style.display = "block";
 
-            const players = Object.keys(snapshot.val().players);
-            const roleList = document.getElementById("roles");
-            roleList.innerHTML = "";
+            const roomRef = ref(db, `rooms/${roomId}`);
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                const players = Object.keys(roomData.players);
+                const roleList = document.getElementById("roles");
+                roleList.innerHTML = "";
 
-            players.forEach((player, index) => {
-                const li = document.createElement("li");
-                if (index === spyIndex) {
-                    li.textContent = `${player}: جاسوس`;
-                } else {
-                    li.textContent = `${player}: لاعب عادي`;
+                players.forEach((player, index) => {
+                    const li = document.createElement("li");
+                    li.textContent = `${player}: ${index === spyIndex ? "جاسوس" : "لاعب عادي"}`;
+                    roleList.appendChild(li);
+                });
+
+                // Timer logic
+                let timeLeft = 60; // Set the game time in seconds
+                const timerElement = document.createElement("h3");
+                timerElement.textContent = `الوقت المتبقي: ${timeLeft} ثانية`;
+                document.getElementById("gameSection").appendChild(timerElement);
+
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    timerElement.textContent = `الوقت المتبقي: ${timeLeft} ثانية`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        alert("انتهى الوقت! الجاسوس فاز 🎉");
+                        resetGame();
+                    }
+                }, 1000);
+            });
+        }
+
+        // Reset game logic
+        function resetGame() {
+            const roomRef = ref(db, `rooms/${roomId}`);
+            update(roomRef, { gameStarted: false, spyIndex: null });
+            document.getElementById("gameSection").style.display = "none";
+            document.getElementById("gameLobby").style.display = "block";
+        }
+
+        // Send a chat message
+        function sendChatMessage() {
+            const message = document.getElementById("chatInput").value.trim();
+            if (message) {
+                const chatRef = push(ref(db, `rooms/${roomId}/chat`));
+                set(chatRef, { sender: playerName, message });
+                document.getElementById("chatInput").value = "";
+            }
+        }
+
+        // Listen to chat messages
+        function listenToChat() {
+            const chatRef = ref(db, `rooms/${roomId}/chat`);
+            onValue(chatRef, (snapshot) => {
+                const chatMessages = snapshot.val();
+                const chatDisplay = document.getElementById("chatMessages");
+                chatDisplay.innerHTML = "";
+
+                for (const key in chatMessages) {
+                    const { sender, message } = chatMessages[key];
+                    const msgElement = document.createElement("p");
+                    msgElement.textContent = `${sender}: ${message}`;
+                    chatDisplay.appendChild(msgElement);
                 }
-                roleList.appendChild(li);
             });
         }
 
@@ -134,6 +189,7 @@
             document.getElementById("createRoomBtn").addEventListener("click", createRoom);
             document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
             document.getElementById("markReadyBtn").addEventListener("click", markReady);
+            document.getElementById("sendChatBtn").addEventListener("click", sendChatMessage);
         });
     </script>
     <style>
@@ -149,6 +205,14 @@
         #createRoomSection, #joinRoomSection {
             display: block;
         }
+        #chatMessages {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -156,26 +220,33 @@
 
     <div id="createRoomSection" class="section">
         <h2>إنشاء غرفة جديدة</h2>
-        <button id="createRoomBtn">إنشاء الغرفة</button>
+        <button id="createRoomBtn" class="btn btn-primary">إنشاء الغرفة</button>
     </div>
 
     <div id="joinRoomSection" class="section">
         <h2>الانضمام إلى غرفة</h2>
-        <input type="text" id="roomIdInput" placeholder="رمز الغرفة">
-        <input type="text" id="playerNameInput" placeholder="اسم اللاعب">
-        <button id="joinRoomBtn">انضمام</button>
+        <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
+        <input type="text" id="playerNameInput" placeholder="اسم اللاعب" class="form-control mt-2">
+        <button id="joinRoomBtn" class="btn btn-success mt-2">انضمام</button>
     </div>
 
     <div id="gameLobby" class="section">
         <h2 id="roomIdDisplay"></h2>
         <h3>اللاعبون:</h3>
-        <ul id="playersList"></ul>
-        <button id="markReadyBtn">جاهز</button>
+        <ul id="playersList" class="list-group"></ul>
+        <button id="markReadyBtn" class="btn btn-secondary mt-3">جاهز</button>
     </div>
 
     <div id="gameSection" class="section">
         <h2>الأدوار</h2>
-        <ul id="roles"></ul>
+        <ul id="roles" class="list-group"></ul>
+    </div>
+
+    <div id="chatSection" class="section">
+        <h3>الدردشة</h3>
+        <div id="chatMessages"></div>
+        <input type="text" id="chatInput" placeholder="اكتب رسالتك" class="form-control">
+        <button id="sendChatBtn" class="btn btn-secondary mt-2">إرسال</button>
     </div>
 </body>
 </html>
