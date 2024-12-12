@@ -3,66 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الجاسوس</title>
+    <title>لعبة الجاسوس - أونلاين</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+        import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
             authDomain: "who-is-the-spy-51308.firebaseapp.com",
+            databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "who-is-the-spy-51308",
+            storageBucket: "who-is-the-spy-51308.appspot.com",
+            messagingSenderId: "900253646275",
+            appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
+            measurementId: "G-NWXDDDRPRH"
         };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const db = getDatabase(app);
 
-        let players = [];
-        let spyIndex = null;
+        let roomId = null;
+        let playerName = null;
 
-        // تسجيل الدخول
-        async function signInWithGoogle() {
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                document.getElementById("authSection").style.display = "none";
-                document.getElementById("setupSection").style.display = "block";
-            } catch (error) {
-                alert("فشل تسجيل الدخول: " + error.message);
-            }
-        }
+        // Create a game room
+        function createRoom() {
+            const roomRef = push(ref(db, "rooms"));
+            roomId = roomRef.key;
 
-        // تسجيل الخروج
-        function signOutUser() {
-            signOut(auth).then(() => {
-                document.getElementById("authSection").style.display = "block";
-                document.getElementById("setupSection").style.display = "none";
-                document.getElementById("gameSection").style.display = "none";
-            }).catch((error) => {
-                alert("فشل تسجيل الخروج: " + error.message);
+            // Initialize the room data
+            set(roomRef, {
+                players: {},
+                spyIndex: null,
+                gameStarted: false,
             });
+
+            document.getElementById("createRoomSection").style.display = "none";
+            document.getElementById("joinRoomSection").style.display = "none";
+            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
+            document.getElementById("gameLobby").style.display = "block";
         }
 
-        // بدء اللعبة
-        function startGame() {
-            const playerNames = document.getElementById("playerNames").value.split(",");
-            if (playerNames.length < 3) {
-                alert("يجب إدخال 3 لاعبين على الأقل!");
+        // Join a game room
+        function joinRoom() {
+            roomId = document.getElementById("roomIdInput").value.trim();
+            if (!roomId) {
+                alert("يرجى إدخال رمز الغرفة!");
                 return;
             }
 
-            players = playerNames.map(name => name.trim());
-            spyIndex = Math.floor(Math.random() * players.length);
-            document.getElementById("setupSection").style.display = "none";
-            document.getElementById("gameSection").style.display = "block";
-            displayRoles();
+            playerName = document.getElementById("playerNameInput").value.trim();
+            if (!playerName) {
+                alert("يرجى إدخال اسمك!");
+                return;
+            }
+
+            // Add player to the room
+            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+            set(playerRef, { ready: false });
+
+            document.getElementById("createRoomSection").style.display = "none";
+            document.getElementById("joinRoomSection").style.display = "none";
+            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
+            document.getElementById("gameLobby").style.display = "block";
+
+            // Listen for changes in the room
+            listenToRoom();
         }
 
-        // عرض الأدوار
-        function displayRoles() {
+        // Listen for room updates
+        function listenToRoom() {
+            const roomRef = ref(db, `rooms/${roomId}`);
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                const playersList = document.getElementById("playersList");
+                playersList.innerHTML = "";
+
+                for (const player in roomData.players) {
+                    const li = document.createElement("li");
+                    li.textContent = `${player} ${roomData.players[player].ready ? "✅" : "❌"}`;
+                    playersList.appendChild(li);
+                }
+
+                if (roomData.gameStarted) {
+                    startGame(roomData.spyIndex);
+                }
+            });
+        }
+
+        // Mark player as ready
+        function markReady() {
+            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+            update(playerRef, { ready: true });
+
+            const roomRef = ref(db, `rooms/${roomId}`);
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+
+                // Check if all players are ready
+                const allReady = Object.values(roomData.players).every(player => player.ready);
+                if (allReady && !roomData.gameStarted) {
+                    const spyIndex = Math.floor(Math.random() * Object.keys(roomData.players).length);
+                    update(roomRef, { gameStarted: true, spyIndex });
+                }
+            });
+        }
+
+        // Start the game
+        function startGame(spyIndex) {
+            document.getElementById("gameLobby").style.display = "none";
+            document.getElementById("gameSection").style.display = "block";
+
+            const players = Object.keys(snapshot.val().players);
             const roleList = document.getElementById("roles");
             roleList.innerHTML = "";
 
@@ -77,77 +130,52 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("signInBtn").addEventListener("click", signInWithGoogle);
-            document.getElementById("signOutBtn").addEventListener("click", signOutUser);
-            document.getElementById("startGameBtn").addEventListener("click", startGame);
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("createRoomBtn").addEventListener("click", createRoom);
+            document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
+            document.getElementById("markReadyBtn").addEventListener("click", markReady);
         });
     </script>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
             text-align: center;
-            margin: 0;
             padding: 20px;
-            background-color: #f0f0f0;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        .section {
+            display: none;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        input, textarea {
-            width: 90%;
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            background: #f9f9f9;
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
+        #createRoomSection, #joinRoomSection {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <h1>لعبة الجاسوس - أونلاين</h1>
 
-<div id="authSection" class="container">
-    <h1>تسجيل الدخول</h1>
-    <button id="signInBtn">تسجيل الدخول باستخدام جوجل</button>
-</div>
+    <div id="createRoomSection" class="section">
+        <h2>إنشاء غرفة جديدة</h2>
+        <button id="createRoomBtn">إنشاء الغرفة</button>
+    </div>
 
-<div id="setupSection" class="container" style="display:none;">
-    <h1>إعداد اللعبة</h1>
-    <textarea id="playerNames" placeholder="أدخل أسماء اللاعبين (مفصولة بفاصلة)"></textarea>
-    <button id="startGameBtn">ابدأ اللعبة</button>
-</div>
+    <div id="joinRoomSection" class="section">
+        <h2>الانضمام إلى غرفة</h2>
+        <input type="text" id="roomIdInput" placeholder="رمز الغرفة">
+        <input type="text" id="playerNameInput" placeholder="اسم اللاعب">
+        <button id="joinRoomBtn">انضمام</button>
+    </div>
 
-<div id="gameSection" class="container" style="display:none;">
-    <h1>لعبة الجاسوس</h1>
-    <ul id="roles"></ul>
-    <button id="signOutBtn">تسجيل الخروج</button>
-</div>
+    <div id="gameLobby" class="section">
+        <h2 id="roomIdDisplay"></h2>
+        <h3>اللاعبون:</h3>
+        <ul id="playersList"></ul>
+        <button id="markReadyBtn">جاهز</button>
+    </div>
 
+    <div id="gameSection" class="section">
+        <h2>الأدوار</h2>
+        <ul id="roles"></ul>
+    </div>
 </body>
 </html>
