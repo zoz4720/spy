@@ -7,8 +7,7 @@
     <script type="module">
         // Import Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -25,30 +24,36 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // Google Sign-In provider
-        const provider = new GoogleAuthProvider();
+        // دالة لتسجيل المستخدم
+        async function registerWithEmail() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        // دالة لتسجيل الدخول باستخدام جوجل
-        async function signInWithGoogle() {
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                console.log("تم إنشاء الحساب بنجاح:", user.email);
+                alert("تم إنشاء الحساب بنجاح!");
+            } catch (error) {
+                console.error("حدث خطأ أثناء إنشاء الحساب:", error.message);
+                alert("فشل إنشاء الحساب: " + error.message);
+            }
+        }
 
-                // حفظ بيانات المستخدم في Firestore
-                await setDoc(doc(db, "users", user.uid), {
-                    displayName: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL
-                });
+        // دالة لتسجيل الدخول
+        async function loginWithEmail() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-                // عرض رسالة للمستخدم بعد تسجيل الدخول
-                console.log("تم تسجيل الدخول بنجاح:", user.displayName);
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                console.log("تم تسجيل الدخول بنجاح:", user.email);
                 alert("تم تسجيل الدخول بنجاح!");
             } catch (error) {
                 console.error("حدث خطأ أثناء تسجيل الدخول:", error.message);
-                alert("فشل تسجيل الدخول!");
+                alert("فشل تسجيل الدخول: " + error.message);
             }
         }
 
@@ -64,27 +69,18 @@
         // التحقق من حالة المستخدم
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("المستخدم مسجل دخول:", user.displayName);
-                document.getElementById("signInBtn").style.display = "none"; // إخفاء زر التسجيل
-                document.getElementById("signOutBtn").style.display = "block"; // عرض زر الخروج
+                console.log("المستخدم مسجل دخول:", user.email);
+                document.getElementById("authSection").style.display = "none"; // إخفاء واجهة تسجيل الدخول
+                document.getElementById("logoutSection").style.display = "block"; // عرض زر الخروج
             } else {
                 console.log("المستخدم غير مسجل دخول");
-                document.getElementById("signInBtn").style.display = "block"; // عرض زر التسجيل
-                document.getElementById("signOutBtn").style.display = "none"; // إخفاء زر الخروج
+                document.getElementById("authSection").style.display = "block"; // عرض واجهة تسجيل الدخول
+                document.getElementById("logoutSection").style.display = "none"; // إخفاء زر الخروج
             }
-        });
-
-        // إضافة حدث الـ DOMContentLoaded للتأكد من تحميل الصفحة بالكامل
-        document.addEventListener("DOMContentLoaded", function() {
-            const signInBtn = document.getElementById("signInBtn");
-            const signOutBtn = document.getElementById("signOutBtn");
-
-            // التأكد من أن الأزرار متاحة بعد تحميل الصفحة
-            signInBtn.addEventListener("click", signInWithGoogle);
-            signOutBtn.addEventListener("click", signOutUser);
         });
     </script>
     <style>
+        /* نفس التنسيقات الموجودة سابقًا */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -113,6 +109,13 @@
             color: #333;
             font-size: 24px;
         }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
         .btn {
             background: linear-gradient(135deg, #4285F4, #34A853);
             color: white;
@@ -136,25 +139,22 @@
         .btn:focus {
             outline: none;
         }
-        /* تحسينات لاستجابة التصميم */
-        @media screen and (max-width: 480px) {
-            .container {
-                padding: 20px;
-                max-width: 300px;
-            }
-            .btn {
-                font-size: 16px;
-            }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>SPY</h2>
-    <!-- زر تسجيل الدخول باستخدام جوجل -->
-    <button class="btn" id="signInBtn">تسجيل الدخول باستخدام جوجل</button>
-    <button class="btn" id="signOutBtn" style="display:none;">تسجيل الخروج</button>
+    <div id="authSection">
+        <h2>تسجيل الدخول / إنشاء حساب</h2>
+        <input type="email" id="email" placeholder="البريد الإلكتروني">
+        <input type="password" id="password" placeholder="كلمة المرور">
+        <button class="btn" onclick="registerWithEmail()">إنشاء حساب</button>
+        <button class="btn" onclick="loginWithEmail()">تسجيل الدخول</button>
+    </div>
+    <div id="logoutSection" style="display:none;">
+        <h2>مرحبًا بك!</h2>
+        <button class="btn" onclick="signOutUser()">تسجيل الخروج</button>
+    </div>
 </div>
 
 </body>
