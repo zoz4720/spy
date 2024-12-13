@@ -3,20 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الجاسوس - أونلاين</title>
+    <title>لعبة الجاسوس - النسخة المتقدمة</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <style>
         body {
+            background: linear-gradient(to bottom, #2193b0, #6dd5ed);
             font-family: 'Cairo', sans-serif;
-            background-color: #f5f5f5;
+            color: #fff;
             text-align: center;
             padding: 20px;
         }
-        .section {
-            display: none;
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
         }
-        #createRoomSection, #joinRoomSection {
-            display: block;
+        .btn-custom {
+            background: #ff7f50;
+            color: white;
+            border: none;
+        }
+        .btn-custom:hover {
+            background: #ff4500;
+        }
+        .hidden {
+            display: none;
         }
         #chatMessages {
             height: 200px;
@@ -24,27 +37,77 @@
             border: 1px solid #ccc;
             padding: 10px;
             background: #fff;
+            color: #000;
             margin-bottom: 10px;
         }
-        .btn-primary, .btn-success, .btn-secondary {
-            margin-top: 10px;
+        #voteSection {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 10px;
+            animation: fadeIn 1s;
         }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            background: #ddd;
-            margin: 5px;
-            padding: 10px;
-            border-radius: 5px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
+</head>
+<body>
+    <h1 class="animate__animated animate__fadeInDown">لعبة الجاسوس - النسخة المتقدمة</h1>
+
+    <div id="loginSection" class="container">
+        <h2>تسجيل الدخول</h2>
+        <button id="googleLoginBtn" class="btn btn-custom">تسجيل الدخول باستخدام Google</button>
+    </div>
+
+    <div id="createRoomSection" class="container hidden">
+        <h2>إنشاء غرفة جديدة</h2>
+        <button id="createRoomBtn" class="btn btn-custom">إنشاء الغرفة</button>
+    </div>
+
+    <div id="joinRoomSection" class="container hidden">
+        <h2>الانضمام إلى غرفة</h2>
+        <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
+        <button id="joinRoomBtn" class="btn btn-success mt-2">انضمام</button>
+    </div>
+
+    <div id="gameLobby" class="container hidden">
+        <h2 id="roomIdDisplay"></h2>
+        <h3>اللاعبون:</h3>
+        <ul id="playersList" class="list-group"></ul>
+        <button id="markReadyBtn" class="btn btn-secondary mt-3">جاهز</button>
+    </div>
+
+    <div id="gameSection" class="container hidden">
+        <h2>الأدوار</h2>
+        <ul id="roles" class="list-group"></ul>
+        <h3 id="questionSection" class="mt-3"></h3>
+    </div>
+
+    <div id="chatSection" class="container hidden">
+        <h3>الدردشة</h3>
+        <div id="chatMessages"></div>
+        <input type="text" id="chatInput" placeholder="اكتب رسالتك" class="form-control">
+        <button id="sendChatBtn" class="btn btn-secondary mt-2">إرسال</button>
+    </div>
+
+    <div id="voteSection" class="hidden">
+        <h2>مرحلة التصويت</h2>
+        <p>صوّت على من تعتقد أنه الجاسوس:</p>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
             authDomain: "who-is-the-spy-51308.firebaseapp.com",
@@ -56,72 +119,74 @@
             measurementId: "G-NWXDDDRPRH"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const provider = new GoogleAuthProvider();
         const db = getDatabase(app);
-        const auth = getAuth(app);
 
         let roomId = null;
         let playerName = null;
-        let isHost = false;
-        let wordForPlayers = "";
-        let spyWord = "";
+        const votes = {};
+        const scores = {};
 
-        const words = [
-            "مستشفى",
-            "مدرسة",
-            "مطار",
-            "مطعم",
-            "سوبر ماركت",
-            "ملعب كرة قدم",
-            "مكتبة",
-            "سينما",
-            "مسرح",
-            "شاطئ"
-        ];
+        const questions = {
+            normal: [
+                "ما هو لون المكان الذي نحن فيه؟",
+                "هل المكان مغلق أم مفتوح؟",
+                "كم عدد الأشخاص الذين يمكن أن يكونوا في هذا المكان؟"
+            ],
+            spy: [
+                "حاول تخمين طبيعة المكان من إجابات الآخرين.",
+                "اسأل سؤالاً غامضاً حتى لا يتم كشفك.",
+                "ما هو أول شيء يخطر ببالك عن هذا المكان؟"
+            ]
+        };
 
-        function loginWithGoogle() {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).then((result) => {
-                playerName = result.user.displayName;
-                document.getElementById("createRoomSection").style.display = "block";
-                document.getElementById("joinRoomSection").style.display = "block";
-                alert(`مرحبًا ${playerName}! يمكنك الآن إنشاء غرفة أو الانضمام.`);
-            }).catch((error) => {
-                console.error(error);
-                alert("حدث خطأ أثناء تسجيل الدخول!");
-            });
-        }
+        document.getElementById("googleLoginBtn").addEventListener("click", () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    playerName = result.user.displayName;
+                    document.getElementById("loginSection").classList.add("hidden");
+                    document.getElementById("createRoomSection").classList.remove("hidden");
+                    document.getElementById("joinRoomSection").classList.remove("hidden");
+                })
+                .catch((error) => {
+                    console.error("Login Error:", error);
+                });
+        });
 
-        function createRoom() {
+        document.getElementById("createRoomBtn").addEventListener("click", () => {
             const roomRef = push(ref(db, "rooms"));
             roomId = roomRef.key;
-            isHost = true;
-
             set(roomRef, {
                 players: {},
                 spyIndex: null,
                 gameStarted: false,
-                chat: {},
-                votes: {}
+                chat: {}
             });
 
-            joinRoom(roomId);
-        }
+            navigateToLobby(roomId);
+        });
 
-        function joinRoom(inputRoomId) {
-            roomId = inputRoomId || document.getElementById("roomIdInput").value.trim();
+        document.getElementById("joinRoomBtn").addEventListener("click", () => {
+            roomId = document.getElementById("roomIdInput").value.trim();
             if (!roomId) {
                 alert("يرجى إدخال رمز الغرفة!");
                 return;
             }
 
+            navigateToLobby(roomId);
+        });
+
+        function navigateToLobby(roomId) {
             const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
             set(playerRef, { ready: false });
 
-            document.getElementById("createRoomSection").style.display = "none";
-            document.getElementById("joinRoomSection").style.display = "none";
+            document.getElementById("createRoomSection").classList.add("hidden");
+            document.getElementById("joinRoomSection").classList.add("hidden");
             document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
-            document.getElementById("gameLobby").style.display = "block";
+            document.getElementById("gameLobby").classList.remove("hidden");
 
             listenToRoom();
         }
@@ -145,7 +210,7 @@
             });
         }
 
-        function markReady() {
+        document.getElementById("markReadyBtn").addEventListener("click", () => {
             const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
             update(playerRef, { ready: true });
 
@@ -156,16 +221,14 @@
                 const allReady = Object.values(roomData.players).every(player => player.ready);
                 if (allReady && !roomData.gameStarted) {
                     const spyIndex = Math.floor(Math.random() * Object.keys(roomData.players).length);
-                    wordForPlayers = words[Math.floor(Math.random() * words.length)];
-                    spyWord = "غير معروف"; // كلمة مخصصة للجاسوس
                     update(roomRef, { gameStarted: true, spyIndex });
                 }
             });
-        }
+        });
 
         function startGame(spyIndex) {
-            document.getElementById("gameLobby").style.display = "none";
-            document.getElementById("gameSection").style.display = "block";
+            document.getElementById("gameLobby").classList.add("hidden");
+            document.getElementById("gameSection").classList.remove("hidden");
 
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, (snapshot) => {
@@ -176,52 +239,58 @@
 
                 players.forEach((player, index) => {
                     const li = document.createElement("li");
-                    if (index === spyIndex) {
-                        li.textContent = `${player}: جاسوس`;
-                    } else {
-                        li.textContent = `${player}: كلمة السر هي "${wordForPlayers}"`;
-                    }
+                    li.textContent = `${player}: ${index === spyIndex ? "جاسوس" : "لاعب عادي"}`;
                     roleList.appendChild(li);
+                    if (player === playerName) {
+                        const question = askQuestion(player, index === spyIndex);
+                        document.getElementById("questionSection").textContent = question;
+                    }
                 });
+
+                setTimeout(() => {
+                    startVoting(players);
+                }, 30000); // 30 seconds for questioning phase
             });
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("googleLoginBtn").addEventListener("click", loginWithGoogle);
-            document.getElementById("createRoomBtn").addEventListener("click", createRoom);
-            document.getElementById("joinRoomBtn").addEventListener("click", () => joinRoom());
-            document.getElementById("markReadyBtn").addEventListener("click", markReady);
-        });
+        function askQuestion(player, isSpy) {
+            const questionList = isSpy ? questions.spy : questions.normal;
+            const question = questionList[Math.floor(Math.random() * questionList.length)];
+            return `${player}, ${question}`;
+        }
+
+        function startVoting(players) {
+            document.getElementById("gameSection").classList.add("hidden");
+            const voteSection = document.getElementById("voteSection");
+            voteSection.classList.remove("hidden");
+            players.forEach(player => {
+                const voteButton = document.createElement("button");
+                voteButton.textContent = player;
+                voteButton.classList.add("btn", "btn-danger", "m-2");
+                voteButton.addEventListener("click", () => {
+                    recordVote(player);
+                });
+                voteSection.appendChild(voteButton);
+            });
+        }
+
+        function recordVote(player) {
+            votes[player] = (votes[player] || 0) + 1;
+            if (Object.keys(votes).length === Object.keys(votes).length) {
+                announceResults();
+            }
+        }
+
+        function announceResults() {
+            const result = Object.entries(votes).reduce((a, b) => (a[1] > b[1] ? a : b));
+            alert(`الجاسوس المتوقع هو: ${result[0]}`);
+            document.getElementById("voteSection").classList.add("hidden");
+        }
+
+        function updateScores(winner, isSpy) {
+            scores[winner] = (scores[winner] || 0) + (isSpy ? 3 : 1);
+            console.log("النقاط الحالية:", scores);
+        }
     </script>
-</head>
-<body>
-    <h1>لعبة الجاسوس - أونلاين</h1>
-
-    <div id="authSection">
-        <button id="googleLoginBtn" class="btn btn-primary">تسجيل الدخول باستخدام Google</button>
-    </div>
-
-    <div id="createRoomSection" class="section">
-        <h2>إنشاء غرفة جديدة</h2>
-        <button id="createRoomBtn" class="btn btn-primary">إنشاء الغرفة</button>
-    </div>
-
-    <div id="joinRoomSection" class="section">
-        <h2>الانضمام إلى غرفة</h2>
-        <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
-        <button id="joinRoomBtn" class="btn btn-success">انضمام</button>
-    </div>
-
-    <div id="gameLobby" class="section">
-        <h2 id="roomIdDisplay"></h2>
-        <h3>اللاعبون:</h3>
-        <ul id="playersList"></ul>
-        <button id="markReadyBtn" class="btn btn-secondary">جاهز</button>
-    </div>
-
-    <div id="gameSection" class="section">
-        <h2>الأدوار</h2>
-        <ul id="roles"></ul>
-    </div>
 </body>
 </html>
