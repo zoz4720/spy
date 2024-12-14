@@ -115,22 +115,22 @@
         let playerName = null;
         let timerInterval;
 
-       document.getElementById("googleLoginBtn").addEventListener("click", () => {
-    signInWithRedirect(auth, provider); // تسجيل الدخول باستخدام إعادة التوجيه
-});
-   getRedirectResult(auth)
-    .then((result) => {
-        if (result && result.user) {
-            playerName = result.user.displayName;
-            console.log("تم تسجيل الدخول:", playerName);
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("createRoomSection").classList.remove("hidden");
-            document.getElementById("joinRoomSection").classList.remove("hidden");
-        }
-    })
-    .catch((error) => {
-        console.error("Login Error:", error.message);
-    });
+        document.getElementById("googleLoginBtn").addEventListener("click", () => {
+            signInWithRedirect(auth, provider);
+        });
+
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result?.user) {
+                    playerName = result.user.displayName || "لاعب مجهول";
+                    document.getElementById("loginSection").classList.add("hidden");
+                    document.getElementById("createRoomSection").classList.remove("hidden");
+                    document.getElementById("joinRoomSection").classList.remove("hidden");
+                }
+            })
+            .catch((error) => {
+                console.error("خطأ في تسجيل الدخول:", error.message);
+            });
 
         document.getElementById("createRoomBtn").addEventListener("click", () => {
             const roomRef = push(ref(db, "rooms"));
@@ -151,7 +151,15 @@
                 alert("يرجى إدخال رمز الغرفة!");
                 return;
             }
-            navigateToLobby(roomId);
+
+            const roomRef = ref(db, `rooms/${roomId}`);
+            onValue(roomRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    navigateToLobby(roomId);
+                } else {
+                    alert("الغرفة غير موجودة! تحقق من رمز الغرفة.");
+                }
+            }, { onlyOnce: true });
         });
 
         function navigateToLobby(roomId) {
@@ -191,12 +199,12 @@
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, (snapshot) => {
                 const roomData = snapshot.val();
-                const allReady = Object.values(roomData.players).every(player => player.ready);
+                const allReady = Object.values(roomData.players || {}).every(player => player.ready);
                 if (allReady && !roomData.gameStarted) {
                     const spyIndex = Math.floor(Math.random() * Object.keys(roomData.players).length);
                     update(roomRef, { gameStarted: true, spyIndex });
                 }
-            });
+            }, { onlyOnce: true });
         });
 
         function startGame(spyIndex) {
