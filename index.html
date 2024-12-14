@@ -33,31 +33,18 @@
         .hidden {
             display: none;
         }
-        #chatMessages {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            background: #fff;
-            color: #000;
-            margin-bottom: 10px;
-        }
-        #timer {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #ff4500;
-            margin: 20px 0;
-        }
     </style>
 </head>
 <body>
     <h1 class="animate__animated animate__fadeInDown">لعبة الجاسوس - النسخة الخارقة</h1>
 
+    <!-- تسجيل الدخول -->
     <div id="loginSection" class="container">
         <h2>تسجيل الدخول</h2>
         <button id="googleLoginBtn" class="btn btn-custom">تسجيل الدخول باستخدام Google</button>
     </div>
 
+    <!-- خيارات الغرف -->
     <div id="createRoomSection" class="container hidden">
         <h2>إنشاء غرفة جديدة</h2>
         <button id="createRoomBtn" class="btn btn-custom">إنشاء الغرفة</button>
@@ -69,6 +56,7 @@
         <button id="joinRoomBtn" class="btn btn-success mt-2">انضمام</button>
     </div>
 
+    <!-- واجهة اللاعبين -->
     <div id="gameLobby" class="container hidden">
         <h2 id="roomIdDisplay"></h2>
         <h3>اللاعبون:</h3>
@@ -76,25 +64,24 @@
         <button id="markReadyBtn" class="btn btn-secondary mt-3">جاهز</button>
     </div>
 
-    <div id="gameSection" class="container hidden">
-        <h2>الأدوار</h2>
-        <ul id="roles" class="list-group"></ul>
-        <h3 id="questionSection" class="mt-3"></h3>
-        <div id="timer">الوقت المتبقي: 5:00</div>
-    </div>
-
-    <div id="chatSection" class="container hidden">
-        <h3>الدردشة</h3>
-        <div id="chatMessages"></div>
-        <input type="text" id="chatInput" placeholder="اكتب رسالتك" class="form-control">
-        <button id="sendChatBtn" class="btn btn-secondary mt-2">إرسال</button>
-    </div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { getRedirectResult, signInWithRedirect, GoogleAuthProvider, getAuth } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
+        import { 
+            getRedirectResult, 
+            signInWithRedirect, 
+            GoogleAuthProvider, 
+            getAuth 
+        } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+        import { 
+            getDatabase, 
+            ref, 
+            set, 
+            push, 
+            onValue, 
+            update 
+        } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
+        // إعدادات Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
             authDomain: "who-is-the-spy-51308.firebaseapp.com",
@@ -106,47 +93,57 @@
             measurementId: "G-NWXDDDRPRH"
         };
 
+        // تهيئة Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const provider = new GoogleAuthProvider();
         const db = getDatabase(app);
 
-        let roomId = null;
         let playerName = null;
-        let timerInterval;
 
-        document.getElementById("googleLoginBtn").addEventListener("click", () => {
-            signInWithRedirect(auth, provider);
+        // تسجيل الدخول باستخدام Google
+        document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+            try {
+                await signInWithRedirect(auth, provider);
+            } catch (error) {
+                console.error("خطأ أثناء تسجيل الدخول:", error.message);
+                alert("حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة لاحقًا.");
+            }
         });
 
+        // التحقق من نتيجة تسجيل الدخول
         getRedirectResult(auth)
             .then((result) => {
-                if (result?.user) {
+                if (result && result.user) {
                     playerName = result.user.displayName || "لاعب مجهول";
+                    console.log("تسجيل الدخول ناجح:", playerName);
+
+                    // إظهار واجهة الغرف
                     document.getElementById("loginSection").classList.add("hidden");
                     document.getElementById("createRoomSection").classList.remove("hidden");
                     document.getElementById("joinRoomSection").classList.remove("hidden");
                 }
             })
             .catch((error) => {
-                console.error("خطأ في تسجيل الدخول:", error.message);
+                console.error("خطأ أثناء معالجة تسجيل الدخول:", error.message);
+                alert(`خطأ: ${error.message}`);
             });
 
+        // إنشاء غرفة جديدة
         document.getElementById("createRoomBtn").addEventListener("click", () => {
             const roomRef = push(ref(db, "rooms"));
-            roomId = roomRef.key;
+            const roomId = roomRef.key;
             set(roomRef, {
-                players: {},
-                spyIndex: null,
-                gameStarted: false,
-                chat: {}
+                players: { [playerName]: { ready: false } },
+                gameStarted: false
             });
 
             navigateToLobby(roomId);
         });
 
+        // الانضمام إلى غرفة موجودة
         document.getElementById("joinRoomBtn").addEventListener("click", () => {
-            roomId = document.getElementById("roomIdInput").value.trim();
+            const roomId = document.getElementById("roomIdInput").value.trim();
             if (!roomId) {
                 alert("يرجى إدخال رمز الغرفة!");
                 return;
@@ -155,77 +152,39 @@
             const roomRef = ref(db, `rooms/${roomId}`);
             onValue(roomRef, (snapshot) => {
                 if (snapshot.exists()) {
+                    set(ref(db, `rooms/${roomId}/players/${playerName}`), { ready: false });
                     navigateToLobby(roomId);
                 } else {
-                    alert("الغرفة غير موجودة! تحقق من رمز الغرفة.");
+                    alert("الغرفة غير موجودة! تحقق من الرمز.");
                 }
             }, { onlyOnce: true });
         });
 
+        // الانتقال إلى واجهة الغرفة
         function navigateToLobby(roomId) {
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            set(playerRef, { ready: false });
-
             document.getElementById("createRoomSection").classList.add("hidden");
             document.getElementById("joinRoomSection").classList.add("hidden");
             document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
             document.getElementById("gameLobby").classList.remove("hidden");
-            listenToRoom();
-        }
 
-        function listenToRoom() {
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, (snapshot) => {
-                const roomData = snapshot.val();
-                const playersList = document.getElementById("playersList");
+            const playersList = document.getElementById("playersList");
+            onValue(ref(db, `rooms/${roomId}/players`), (snapshot) => {
+                const players = snapshot.val();
                 playersList.innerHTML = "";
-
-                for (const player in roomData.players) {
+                for (const [player, status] of Object.entries(players)) {
                     const li = document.createElement("li");
-                    li.textContent = `${player} ${roomData.players[player].ready ? "✅" : "❌"}`;
+                    li.textContent = `${player} ${status.ready ? "✅" : "❌"}`;
                     playersList.appendChild(li);
-                }
-
-                if (roomData.gameStarted) {
-                    startGame(roomData.spyIndex);
                 }
             });
         }
 
+        // جاهزية اللاعب
         document.getElementById("markReadyBtn").addEventListener("click", () => {
+            const roomId = document.getElementById("roomIdDisplay").textContent.split(":")[1].trim();
             const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
             update(playerRef, { ready: true });
-
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, (snapshot) => {
-                const roomData = snapshot.val();
-                const allReady = Object.values(roomData.players || {}).every(player => player.ready);
-                if (allReady && !roomData.gameStarted) {
-                    const spyIndex = Math.floor(Math.random() * Object.keys(roomData.players).length);
-                    update(roomRef, { gameStarted: true, spyIndex });
-                }
-            }, { onlyOnce: true });
         });
-
-        function startGame(spyIndex) {
-            document.getElementById("gameLobby").classList.add("hidden");
-            document.getElementById("gameSection").classList.remove("hidden");
-            startTimer();
-        }
-
-        function startTimer() {
-            let timeLeft = 300;
-            timerInterval = setInterval(() => {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                document.getElementById("timer").textContent = `الوقت المتبقي: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    alert("انتهى الوقت! حان وقت التصويت!");
-                }
-                timeLeft--;
-            }, 1000);
-        }
     </script>
 </body>
 </html>
