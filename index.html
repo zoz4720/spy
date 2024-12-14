@@ -116,7 +116,7 @@
         let timerInterval;
 
         document.getElementById("googleLoginBtn").addEventListener("click", () => {
-            signInWithPopup(auth, provider)
+           signInWithRedirect(auth, provider);
                 .then((result) => {
                     playerName = result.user.displayName;
                     document.getElementById("loginSection").classList.add("hidden");
