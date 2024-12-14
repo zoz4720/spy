@@ -92,7 +92,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
         const firebaseConfig = {
@@ -116,17 +116,18 @@
         let timerInterval;
 
         document.getElementById("googleLoginBtn").addEventListener("click", () => {
-           signInWithRedirect(auth, provider);
-                .then((result) => {
-                    playerName = result.user.displayName;
-                    document.getElementById("loginSection").classList.add("hidden");
-                    document.getElementById("createRoomSection").classList.remove("hidden");
-                    document.getElementById("joinRoomSection").classList.remove("hidden");
-                })
-                .catch((error) => {
-                    console.error("Login Error:", error);
-                });
-        });
+          getRedirectResult(auth)
+    .then((result) => {
+        if (result) {
+            playerName = result.user.displayName;
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("createRoomSection").classList.remove("hidden");
+            document.getElementById("joinRoomSection").classList.remove("hidden");
+        }
+    })
+    .catch((error) => {
+        console.error("Login Error:", error);
+    });
 
         document.getElementById("createRoomBtn").addEventListener("click", () => {
             const roomRef = push(ref(db, "rooms"));
