@@ -1,190 +1,220 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة الجاسوس - النسخة المطورة</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <title>لعبة الجاسوس - نظام الغرف والشات</title>
     <style>
         body {
-            background: linear-gradient(to bottom, #ff7f50, #6dd5ed);
-            font-family: 'Cairo', sans-serif;
-            color: #fff;
+            font-family: Arial, sans-serif;
             text-align: center;
-            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
         }
+
         .container {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            max-width: 600px;
+            margin: auto;
             padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .btn-custom {
-            background: #ff7f50;
-            color: white;
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
             border: none;
-            transition: background 0.3s;
+            border-radius: 5px;
+            cursor: pointer;
         }
-        .btn-custom:hover {
-            background: #ff4500;
+
+        button:disabled {
+            background-color: #ccc;
         }
-        .hidden {
-            display: none;
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            margin: 5px 0;
+            padding: 10px;
+            background: #eee;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        ul li.hidden {
+            background: #ccc;
+            color: #ccc;
+        }
+
+        #chatBox {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+
+        #chatBox p {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <h1 class="animate__animated animate__fadeInDown">لعبة الجاسوس - النسخة الخارقة</h1>
-
-    <!-- تسجيل الدخول -->
-    <div id="loginSection" class="container">
-        <h2>تسجيل الدخول</h2>
-        <button id="googleLoginBtn" class="btn btn-custom">تسجيل الدخول باستخدام Google</button>
+    <div class="container">
+        <h1>لعبة الجاسوس</h1>
+        <div id="roomSetup">
+            <h2>إدارة الغرف</h2>
+            <input type="text" id="roomName" placeholder="اسم الغرفة">
+            <button id="createRoom">إنشاء غرفة</button>
+            <h3>أو اختر غرفة موجودة:</h3>
+            <ul id="roomList"></ul>
+        </div>
+        <div id="setup" style="display: none;">
+            <h2>إعداد اللاعبين</h2>
+            <input type="text" id="playerName" placeholder="أدخل اسم اللاعب">
+            <button id="addPlayer">إضافة لاعب</button>
+            <ul id="playerList"></ul>
+            <button id="startGame" disabled>ابدأ اللعبة</button>
+        </div>
+        <div id="game" style="display: none;">
+            <h2>توزيع الأدوار</h2>
+            <p id="instructions">اضغط على اسمك لمعرفة دورك.</p>
+            <ul id="rolesList"></ul>
+            <button id="revealSpy" style="display: none;">اكشف الجاسوس</button>
+            <p id="spyReveal" style="display: none;"></p>
+            <div id="chat">
+                <h2>الشات</h2>
+                <div id="chatBox"></div>
+                <input type="text" id="chatMessage" placeholder="اكتب رسالتك">
+                <button id="sendMessage">إرسال</button>
+            </div>
+        </div>
     </div>
 
-    <!-- خيارات الغرف -->
-    <div id="createRoomSection" class="container hidden">
-        <h2>إنشاء غرفة جديدة</h2>
-        <button id="createRoomBtn" class="btn btn-custom">إنشاء الغرفة</button>
-    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
 
-    <div id="joinRoomSection" class="container hidden">
-        <h2>الانضمام إلى غرفة</h2>
-        <input type="text" id="roomIdInput" placeholder="رمز الغرفة" class="form-control">
-        <button id="joinRoomBtn" class="btn btn-success mt-2">انضمام</button>
-    </div>
-
-    <!-- واجهة اللاعبين -->
-    <div id="gameLobby" class="container hidden">
-        <h2 id="roomIdDisplay"></h2>
-        <h3>اللاعبون:</h3>
-        <ul id="playersList" class="list-group"></ul>
-        <button id="markReadyBtn" class="btn btn-secondary mt-3">جاهز</button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-        import { 
-            getRedirectResult, 
-            signInWithRedirect, 
-            GoogleAuthProvider, 
-            getAuth 
-        } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
-        import { 
-            getDatabase, 
-            ref, 
-            set, 
-            push, 
-            onValue, 
-            update 
-        } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
-
-        // إعدادات Firebase
-        const firebaseConfig = {
+    <script>
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
+  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "who-is-the-spy-51308",
   storageBucket: "who-is-the-spy-51308.firebasestorage.app",
   messagingSenderId: "900253646275",
   appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH",
- databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app"
+  measurementId: "G-NWXDDDRPRH"
 };
 
         // تهيئة Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const provider = new GoogleAuthProvider();
-        const db = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        let playerName = null;
+        let currentRoom = null;
+        let players = [];
+        let topics = ["شاطئ", "مطعم", "مطار", "مكتبة", "سينما"];
+        let spyIndex = -1;
 
-        // تسجيل الدخول باستخدام Google
-        document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-            try {
-                await signInWithRedirect(auth, provider);
-            } catch (error) {
-                console.error("خطأ أثناء تسجيل الدخول:", error.message);
-                alert("حدث خطأ أثناء تسجيل الدخول. الرجاء المحاولة لاحقًا.");
-            }
-        });
-
-        // التحقق من نتيجة تسجيل الدخول
-        getRedirectResult(auth)
-            .then((result) => {
-                if (result && result.user) {
-                    playerName = result.user.displayName || "لاعب مجهول";
-                    console.log("تسجيل الدخول ناجح:", playerName);
-
-                    // إظهار واجهة الغرف
-                    document.getElementById("loginSection").classList.add("hidden");
-                    document.getElementById("createRoomSection").classList.remove("hidden");
-                    document.getElementById("joinRoomSection").classList.remove("hidden");
-                }
-            })
-            .catch((error) => {
-                console.error("خطأ أثناء معالجة تسجيل الدخول:", error.message);
-                alert(`خطأ: ${error.message}`);
-            });
+        const roomRef = firebase.database().ref("spyRooms");
 
         // إنشاء غرفة جديدة
-        document.getElementById("createRoomBtn").addEventListener("click", () => {
-            const roomRef = push(ref(db, "rooms"));
-            const roomId = roomRef.key;
-            set(roomRef, {
-                players: { [playerName]: { ready: false } },
-                gameStarted: false
-            });
-
-            navigateToLobby(roomId);
-        });
-
-        // الانضمام إلى غرفة موجودة
-        document.getElementById("joinRoomBtn").addEventListener("click", () => {
-            const roomId = document.getElementById("roomIdInput").value.trim();
-            if (!roomId) {
-                alert("يرجى إدخال رمز الغرفة!");
-                return;
+        document.getElementById("createRoom").addEventListener("click", () => {
+            const roomName = document.getElementById("roomName").value.trim();
+            if (roomName) {
+                currentRoom = roomName;
+                roomRef.child(currentRoom).set({
+                    players: [],
+                    topics,
+                    chat: [],
+                });
+                loadRoom();
             }
-
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    set(ref(db, `rooms/${roomId}/players/${playerName}`), { ready: false });
-                    navigateToLobby(roomId);
-                } else {
-                    alert("الغرفة غير موجودة! تحقق من الرمز.");
-                }
-            }, { onlyOnce: true });
         });
 
-        // الانتقال إلى واجهة الغرفة
-        function navigateToLobby(roomId) {
-            document.getElementById("createRoomSection").classList.add("hidden");
-            document.getElementById("joinRoomSection").classList.add("hidden");
-            document.getElementById("roomIdDisplay").textContent = `رمز الغرفة: ${roomId}`;
-            document.getElementById("gameLobby").classList.remove("hidden");
+        // عرض قائمة الغرف
+        roomRef.on("value", (snapshot) => {
+            const rooms = snapshot.val();
+            const roomList = document.getElementById("roomList");
+            roomList.innerHTML = "";
 
-            const playersList = document.getElementById("playersList");
-            onValue(ref(db, `rooms/${roomId}/players`), (snapshot) => {
-                const players = snapshot.val();
-                playersList.innerHTML = "";
-                for (const [player, status] of Object.entries(players)) {
+            if (rooms) {
+                Object.keys(rooms).forEach((roomName) => {
                     const li = document.createElement("li");
-                    li.textContent = `${player} ${status.ready ? "✅" : "❌"}`;
-                    playersList.appendChild(li);
+                    li.textContent = roomName;
+                    li.addEventListener("click", () => {
+                        currentRoom = roomName;
+                        loadRoom();
+                    });
+                    roomList.appendChild(li);
+                });
+            }
+        });
+
+        // تحميل غرفة
+        function loadRoom() {
+            document.getElementById("roomSetup").style.display = "none";
+            document.getElementById("setup").style.display = "block";
+
+            roomRef.child(currentRoom).on("value", (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    players = data.players || [];
+                    topics = data.topics || [];
+                    updatePlayerList();
+                    updateChat(data.chat || []);
                 }
             });
         }
 
-        // جاهزية اللاعب
-        document.getElementById("markReadyBtn").addEventListener("click", () => {
-            const roomId = document.getElementById("roomIdDisplay").textContent.split(":")[1].trim();
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            update(playerRef, { ready: true });
+        // إضافة لاعب
+        document.getElementById("addPlayer").addEventListener("click", () => {
+            const playerName = document.getElementById("playerName").value.trim();
+            if (playerName) {
+                players.push(playerName);
+                updateDatabase();
+                document.getElementById("playerName").value = "";
+            }
         });
+
+        // تحديث الشات
+        function updateChat(chat) {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML = "";
+            chat.forEach((message) => {
+                const p = document.createElement("p");
+                p.textContent = message;
+                chatBox.appendChild(p);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // إرسال رسالة
+        document.getElementById("sendMessage").addEventListener("click", () => {
+            const message = document.getElementById("chatMessage").value.trim();
+            if (message) {
+                roomRef.child(currentRoom).child("chat").get().then((snapshot) => {
+                    const chat = snapshot.val() || [];
+                    chat.push(message);
+                    roomRef.child(currentRoom).update({ chat });
+                    document.getElementById("chatMessage").value = "";
+                });
+            }
+        });
+
+        // تحديث قاعدة البيانات
+        function updateDatabase() {
+            roomRef.child(currentRoom).update({ players });
+        }
     </script>
 </body>
 </html>
