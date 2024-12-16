@@ -1,214 +1,418 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skill Swap Platform</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <title>القرآن الكريم</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #6200ea;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        .container {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        .dashboard {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .card {
-            flex: 1 1 calc(33.333% - 20px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            border-radius: 5px;
-        }
-        .btn {
-            margin: 5px 0;
-        }
+      
+body {
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    text-align: right;
+    background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+    color: #444;
+    margin: 0;
+    padding: 0;
+}
+
+
+.section-title {
+    color: #a72828;
+    font-size: 2.8rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+
+.search-bar input {
+    border-radius: 50px;
+    padding: 10px 20px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid #ccc;
+    transition: all 0.3s;
+}
+
+.search-bar input:focus {
+    border-color: #007bff;
+    box-shadow: 0 3px 12px rgba(0, 123, 255, 0.4);
+}
+
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.list-group-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+.list-group-item button {
+    margin-left: 5px;
+    border-radius: 30px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.list-group-item button:hover {
+    transform: scale(1.05);
+}
+
+
+#audioPlayer {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+#audio {
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    transition: transform 0.3s;
+}
+
+#audio:hover {
+    transform: scale(1.02);
+}
+
+
+.audio-controls button {
+    margin: 5px;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.audio-controls button:hover {
+    transform: translateY(-3px);
+}
+
+
+#surahText,
+#surahTafsir {
+    background-color: #fff;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    line-height: 1.8;
+    font-size: 1.2rem;
+    margin-top: 20px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+#surahText {
+    background: #f7fbfd;
+}
+
+#surahTafsir {
+    background: #fdf6f7;
+    color: #555;
+}
+
+
+#reciterSelect {
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    font-size: 1.1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#reciterSelect:focus {
+    border-color: #28a745;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.4);
+}
+
+
+.btn {
+    padding: 8px 20px;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.btn-custom {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.btn-custom:hover {
+    background-color: #138496;
+    color: #f8f9fa;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border: none;
+    color: #fff;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border: none;
+    color: #fff;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
     </style>
-    <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
-   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Skill Swap Platform</h1>
-    </header>
-    <div class="container" id="app">
-        <div id="auth-section">
-            <h2>Register / Login</h2>
-            <input class="form-control" type="email" id="email" placeholder="Email">
-            <input class="form-control" type="password" id="password" placeholder="Password">
-            <button class="btn btn-primary" onclick="registerUser()">Register</button>
-            <button class="btn btn-secondary" onclick="loginUser()">Login</button>
+    <div class="container my-5">
+        <h1 class="text-center section-title">القرآن الكريم</h1>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="form-control" placeholder="ابحث عن سورة..." oninput="searchSurah()">
+        </div>
+        <div class="mb-4">
+            <label for="reciterSelect" class="form-label">اختر القارئ:</label>
+            <select id="reciterSelect" class="form-select">
+                <option value="ar.alafasy">مشاري العفاسي</option>
+                <option value="ar.abdulbasitmurattal">عبد الباسط عبد الصمد</option>
+                <option value="ar.husary">محمود خليل الحصري</option>
+                <option value="ar.minshawi">محمد صديق المنشاوي</option>
+                <option value="ar.ajamy">أحمد العجمي</option>
+                <option value="ar.sudais">عبد الرحمن السديس</option>
+                <option value="ar.shuraym">سعود الشريم</option>
+                <option value="ar.saoodshuraim">سعود الشريم</option>
+                <option value="ar.khalilhusary">محمود خليل الحصري</option>
+                <option value="ar.ashshatree">أبو بكر الشاطري</option>
+                <option value="ar.yasseraldossari">ياسر الدوسري</option>
+            </select>
         </div>
 
-        <div id="dashboard-section" style="display: none;">
-            <h2>Dashboard</h2>
-            <button class="btn btn-danger mb-3" onclick="logoutUser()">Logout</button>
-            <button class="btn btn-info mb-3" onclick="toggleSkillSection()">Add Skill</button>
-            <div class="dashboard" id="all-skills">
-                <!-- Cards will be dynamically generated here -->
+        <ul id="surahList" class="list-group">
+           سيتم تحميل السور هنا     
+        </ul>
+        <div class="card">
+            <h3 class="section-title">أدخل المدينة والدولة</h3>
+            <form id="prayerForm" class="d-flex flex-column align-items-center">
+                <input type="text" id="city" class="form-control my-2" placeholder="أدخل المدينة" required>
+                <input type="text" id="country" class="form-control my-2" placeholder="أدخل الدولة" required>
+                <button type="submit" class="btn btn-primary">عرض أوقات الصلاة</button>
+            </form>
+        </div>
+
+        <!-- أوقات الصلاة -->
+        <div id="prayerTimes" class="card" style="display: none;">
+            <h3 class="section-title">أوقات الصلاة</h3>
+            <ul id="prayerTimesList" class="list-group"></ul>
+        </div>
+    </div>
+        <div class="card">
+            <h3 class="section-title">أذكار الصباح والمساء</h3>
+            <div id="azkar" class="text-center">
+                <button class="btn btn-success" onclick="showAzkar('الصباح')">أذكار الصباح</button>
+                <button class="btn btn-info" onclick="showAzkar('المساء')">أذكار المساء</button>
+            </div>
+            <div id="azkarContent" class="mt-3"></div>
+        </div>
+        
+        <div id="audioPlayer" class="mt-4 text-center">
+            <audio id="audio" controls style="width: 100%;"></audio>
+            <div class="audio-controls">
+                <button id="repeatBtn" class="btn btn-warning btn-sm btn-custom" onclick="toggleRepeat()">تكرار السورة</button>
+                <button id="autoPlayBtn" class="btn btn-info btn-sm btn-custom" onclick="toggleAutoPlay()">تشغيل متتابع</button>
             </div>
         </div>
 
-        <div id="skill-section" style="display: none;">
-            <h2>Add Your Skill</h2>
-            <input class="form-control" type="text" id="skill" placeholder="Your Skill">
-            <select class="form-select" id="skill-category">
-                <option value="Tech">Tech</option>
-                <option value="Art">Art</option>
-                <option value="Business">Business</option>
-                <option value="Other">Other</option>
-            </select>
-            <button class="btn btn-success mt-2" onclick="addSkill()">Add Skill</button>
-            <button class="btn btn-secondary mt-2" onclick="toggleSkillSection()">Back to Dashboard</button>
-            <h3>Your Skills:</h3>
-            <ul id="skill-list" class="list-group"></ul>
-        </div>
+        <div id="surahText" class="mt-4 p-3 bg-light border rounded"></div>
+        <div id="surahTafsir" class="mt-4 p-3 bg-light border rounded"></div>
     </div>
 
     <script>
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-  authDomain: "who-is-the-spy-51308.firebaseapp.com",
-  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "who-is-the-spy-51308",
-  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-  messagingSenderId: "900253646275",
-  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH"
+        let isRepeat = false;
+        let isAutoPlay = false;
+
+        async function loadQuran() {
+            try {
+                const response = await fetch('https://api.alquran.cloud/v1/surah');
+                const data = await response.json();
+                const surahList = data.data;
+
+                const surahContainer = document.getElementById('surahList');
+                surahContainer.innerHTML = surahList.map(surah => `
+                    <li class="list-group-item" data-name="${surah.name}">
+                        <div>
+                            <strong>${surah.number}. ${surah.name}</strong> - ${surah.englishName}
+                        </div>
+                        <div>
+                            <button class="btn btn-success btn-sm" onclick="playSurah(${surah.number})">استمع</button>
+                            <button class="btn btn-primary btn-sm" onclick="downloadSurah(${surah.number})">تنزيل</button>
+                            <button class="btn btn-secondary btn-sm" onclick="loadTafsir(${surah.number})">التفسير</button>
+                        </div>
+                    </li>
+                `).join('');
+            } catch (error) {
+                console.error("Error fetching surah data:", error);
+            }
+        }
+        document.getElementById("prayerForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const city = document.getElementById("city").value.trim();
+            const country = document.getElementById("country").value.trim();
+            const prayerTimesDiv = document.getElementById("prayerTimes");
+            const prayerTimesList = document.getElementById("prayerTimesList");
+
+            if (city && country) {
+                try {
+                    const response = await fetch(https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}&method=2);
+                    const data = await response.json();
+
+                    if (data.code === 200) {
+                        const timings = data.data.timings;
+                        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+                        prayerTimesList.innerHTML = prayerKeys
+                            .map(key => <li class="list-group-item">${key}: ${timings[key]}</li>)
+                            .join('');
+
+                        prayerTimesDiv.style.display = 'block';
+                    } else {
+                        alert("لم يتم العثور على نتائج. تأكد من إدخال المدينة والدولة بشكل صحيح.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching prayer times:', error);
+                    alert("حدث خطأ أثناء تحميل أوقات الصلاة. حاول مرة أخرى.");
+                }
+            } else {
+                alert("يرجى إدخال المدينة والدولة.");
+            }
+        });
+        async function playSurah(surahNumber) {
+            const reciter = document.getElementById('reciterSelect').value;
+      const audioUrl = https://cdn.islamic.network/quran/audio-surah/128/${reciter}/${surahNumber}.mp3;
+
+      function showAzkar(type) {
+            const azkarContent = document.getElementById("azkarContent");
+            azkarContent.innerHTML = ""; // تصفية المحتوى السابق
+            const azkar = type === "الصباح" ? [
+                "اللّهـمَّ أَنْتَ رَبِّي لا إِلَهَ إِلا أَنْتَ...",
+                "اللّهـمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْكَسَلِ..."
+            ] : [
+                "أَمْسَيْنا وَأَمْسَى الْمُلْكُ لِلّهِ...",
+                "اللّهـمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا..."
+            ];
+            azkarContent.innerHTML = <ul>${azkar.map(zekr => <li>${zekr}</li>).join('')}</ul>;
+        }
+
+    
+            const audioPlayer = document.getElementById('audio');
+            audioPlayer.src = audioUrl;
+            try {
+                const response = await fetch(audioUrl, { method: 'HEAD' });
+                if (!response.ok) {
+                    console.error('فشل تحميل الصوت. الرابط غير صحيح أو غير متاح.');
+                    return;
+                }
+                audioPlayer.play();
+                loadSurahText(surahNumber);
+                audioPlayer.onended = () => {
+                    if (isRepeat) {
+                        audioPlayer.play();
+                    } else if (isAutoPlay) {
+                        playSurah(surahNumber + 1);
+                    }
+                };
+            } catch (error) {
+                console.error("Error loading audio:", error);
+            }
+        }
+
+        function downloadSurah(surahNumber) {
+            const reciter = document.getElementById('reciterSelect').value;
+            const downloadUrl = https://cdn.islamic.network/quran/audio-surah/128/${reciter}/${surahNumber}.mp3;
+            const anchor = document.createElement('a');
+            anchor.href = downloadUrl;
+            anchor.download = Surah-${surahNumber}.mp3;
+            anchor.click();
+        }
+
+        async function loadSurahText(surahNumber) {
+            try {
+                const response = await fetch(https://api.alquran.cloud/v1/surah/${surahNumber});
+                const data = await response.json();
+                const verses = data.data.ayahs.map(ayah => ${ayah.numberInSurah}. ${ayah.text}).join('\n');
+
+                const surahTextContainer = document.getElementById('surahText');
+                surahTextContainer.textContent = verses;
+            } catch (error) {
+                console.error("Error fetching surah text:", error);
+            }
+        }
+
+        async function loadTafsir(surahNumber) {
+            try {
+                const response = await fetch(https://api.alquran.cloud/v1/tafsir/ar.jalalayn/${surahNumber});
+                const data = await response.json();
+                const tafsir = data.data.text;
+
+                const surahTafsirContainer = document.getElementById('surahTafsir');
+                surahTafsirContainer.textContent = التفسير:\n${tafsir};
+            } catch (error) {
+                console.error("Error fetching tafsir:", error);
+                document.getElementById('surahTafsir').textContent = "التفسير غير متوفر لهذه السورة.";
+            }
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlay = !isAutoPlay;
+            alert(isAutoPlay ? "تشغيل متتابع مفعّل" : "تشغيل متتابع متوقف");
+        }
+
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            alert(isRepeat ? "التكرار مفعّل" : "التكرار متوقف");
+        }
+
+        function searchSurah() {
+            const searchValue = document.getElementById('searchInput').value.toLowerCase();
+            const surahItems = document.querySelectorAll('#surahList .list-group-item');
+
+            surahItems.forEach(item => {
+                const surahName = item.getAttribute('data-name').toLowerCase();
+                item.style.display = surahName.includes(searchValue) ? 'flex' : 'none';
+            });
+        }
+
+        window.onload = () => {
+    loadQuran();
+    loadPrayerTimes();
+    loadAzkar();
 };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-
-
-        const authSection = document.getElementById('auth-section');
-        const dashboardSection = document.getElementById('dashboard-section');
-        const skillSection = document.getElementById('skill-section');
-        const allSkills = document.getElementById('all-skills');
-        const skillList = document.getElementById('skill-list');
-
-        function registerUser() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(() => {
-                    alert('User registered successfully');
-                    saveUserProfile(email);
-                })
-                .catch(err => alert(err.message));
-        }
-
-        function loginUser() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    authSection.style.display = 'none';
-                    dashboardSection.style.display = 'block';
-                    loadAllSkills();
-                })
-                .catch(err => alert(err.message));
-        }
-
-        function addSkill() {
-            const skill = document.getElementById('skill').value;
-            const category = document.getElementById('skill-category').value;
-            const userId = auth.currentUser.uid;
-
-            if (!skill) {
-                alert('Please enter a skill');
-                return;
-            }
-
-            database.ref('skills/' + userId).push({ skill, category })
-                .then(() => {
-                    alert('Skill added successfully');
-                    loadUserSkills();
-                })
-                .catch(err => alert(err.message));
-        }
-
-        function loadAllSkills() {
-            database.ref('skills').once('value', snapshot => {
-                allSkills.innerHTML = '';
-                snapshot.forEach(userSnapshot => {
-                    userSnapshot.forEach(skillSnapshot => {
-                        const skillData = skillSnapshot.val();
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.innerHTML = `
-                            <div class="card-body">
-                                <h5 class="card-title">${skillData.skill}</h5>
-                                <p class="card-text">Category: ${skillData.category}</p>
-                            </div>`;
-                        allSkills.appendChild(card);
-                    });
-                });
-            });
-        }
-
-        function loadUserSkills() {
-            const userId = auth.currentUser.uid;
-            database.ref('skills/' + userId).once('value', snapshot => {
-                skillList.innerHTML = '';
-                snapshot.forEach(skillSnapshot => {
-                    const skillData = skillSnapshot.val();
-                    const listItem = document.createElement('li');
-                    listItem.className = 'list-group-item';
-                    listItem.textContent = `${skillData.skill} (${skillData.category})`;
-                    skillList.appendChild(listItem);
-                });
-            });
-        }
-
-        function saveUserProfile(email) {
-            const userId = auth.currentUser.uid;
-            database.ref('users/' + userId).set({ email })
-                .catch(err => alert(err.message));
-        }
-
-        function logoutUser() {
-            auth.signOut()
-                .then(() => {
-                    authSection.style.display = 'block';
-                    dashboardSection.style.display = 'none';
-                    skillSection.style.display = 'none';
-                })
-                .catch(err => alert(err.message));
-        }
-
-        function toggleSkillSection() {
-            if (skillSection.style.display === 'none') {
-                skillSection.style.display = 'block';
-                dashboardSection.style.display = 'none';
-                loadUserSkills();
-            } else {
-                skillSection.style.display = 'none';
-                dashboardSection.style.display = 'block';
-            }
-        }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
