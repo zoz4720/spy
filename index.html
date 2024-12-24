@@ -3,121 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocket Shooter Deluxe</title>
+    <title>Card Clash</title>
     <style>
-        /* Global Styles */
         body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to bottom, #000428, #004e92);
-            color: white;
+            font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #222;
+            color: #fff;
         }
-        h1, h2 {
-            margin: 20px;
+        #start-screen {
+            display: block;
+            margin-top: 20px;
         }
         #game-container {
+            display: none;
             margin: 20px auto;
-            width: 80%;
-            height: 600px;
-            background: rgba(0, 0, 0, 0.9);
-            position: relative;
-            overflow: hidden;
-            border: 3px solid #fff;
-            border-radius: 10px;
-            display: none; /* مخفي افتراضيًا */
-        }
-        .rocket, .target, .obstacle {
-            position: absolute;
-            border-radius: 50%;
-        }
-        .rocket {
-            width: 15px;
-            height: 25px;
-            background: red;
-        }
-        .target {
-            width: 50px;
-            height: 50px;
-            background: yellow;
-        }
-        .obstacle {
-            width: 30px;
-            height: 30px;
-            background: gray;
-        }
-        #start-screen, #game-over-screen, #leaderboard {
-            display: none; /* مخفي افتراضيًا */
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: rgba(0, 0, 0, 0.8); /* شفافية */
             padding: 20px;
+            background: #444;
             border-radius: 10px;
-            z-index: 1000; /* أعلى طبقة */
+            width: 80%;
+            max-width: 600px;
         }
-        #start-screen.active, #game-over-screen.active, #leaderboard.active {
-            display: block; /* يظهر عند الحاجة */
+        .card {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
         }
-        #leaderboard ul {
-            list-style: none;
-            padding: 0;
+        .red { background: #e74c3c; }
+        .blue { background: #3498db; }
+        .green { background: #2ecc71; }
+        .yellow { background: #f1c40f; color: #222; }
+        #current-card {
+            margin: 20px auto;
+            padding: 20px;
+            font-size: 24px;
+            color: #fff;
+            border-radius: 10px;
+            width: 150px;
+            height: 200px;
+            line-height: 160px;
+            text-align: center;
         }
-        #leaderboard ul li {
-            margin: 5px 0;
+        #message {
+            margin: 10px 0;
+            font-size: 18px;
         }
         button {
-            background: #004e92;
-            color: white;
-            border: none;
             padding: 10px 20px;
+            margin: 10px;
+            border: none;
             border-radius: 5px;
+            background: #3498db;
+            color: #fff;
             cursor: pointer;
-            font-size: 16px;
         }
         button:hover {
-            background: #003366;
+            background: #2980b9;
+        }
+        .room-list, .room-item {
+            padding: 10px;
+            margin: 5px;
+            background-color: #333;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>Rocket Shooter Deluxe</h1>
+    <h1>Card Clash</h1>
 
     <!-- Start Screen -->
-    <div id="start-screen" class="active">
-        <h2>Welcome to Rocket Shooter</h2>
-        <p>Enter your name to start the game</p>
+    <div id="start-screen">
+        <h2>Welcome to Card Clash</h2>
+        <p>Enter your name:</p>
         <input type="text" id="player-name" placeholder="Your Name">
         <button id="start-game">Start Game</button>
+        <h3>Join or Create a Room</h3>
+        <div id="room-list" class="room-list"></div>
+        <button id="create-room">Create Room</button>
     </div>
 
-    <!-- Game Container -->
+    <!-- Game Screen -->
     <div id="game-container">
-        <div class="rocket" id="rocket"></div>
-        <div class="target" id="target"></div>
-        <div class="obstacle" id="obstacle"></div>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="game-over-screen">
-        <h2>Game Over!</h2>
-        <p>Your score: <span id="final-score">0</span></p>
-        <button id="restart-game">Play Again</button>
-    </div>
-
-    <!-- Leaderboard -->
-    <div id="leaderboard">
-        <h2>Leaderboard</h2>
-        <ul id="leaderboard-list"></ul>
-        <button id="back-to-start">Back to Main Menu</button>
+        <div id="current-card" class="card"></div>
+        <div id="player-hand"></div>
+        <button id="draw-card">Draw Card</button>
+        <p id="message"></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
+        // Firebase Config
         const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
@@ -135,83 +118,152 @@
         // Elements
         const startScreen = document.getElementById('start-screen');
         const gameContainer = document.getElementById('game-container');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const leaderboardScreen = document.getElementById('leaderboard');
         const playerNameInput = document.getElementById('player-name');
         const startGameButton = document.getElementById('start-game');
-        const restartGameButton = document.getElementById('restart-game');
-        const backToStartButton = document.getElementById('back-to-start');
-        const leaderboardList = document.getElementById('leaderboard-list');
-        const rocket = document.getElementById('rocket');
-        const target = document.getElementById('target');
-        const obstacle = document.getElementById('obstacle');
-        const finalScore = document.getElementById('final-score');
+        const currentCardDiv = document.getElementById('current-card');
+        const playerHandDiv = document.getElementById('player-hand');
+        const drawCardButton = document.getElementById('draw-card');
+        const messageDiv = document.getElementById('message');
+        const roomListDiv = document.getElementById('room-list');
+        const createRoomButton = document.getElementById('create-room');
 
-        let playerName = "Player";
-        let score = 0;
+        let playerName = '';
+        let playerHand = [];
+        let currentCard = {};
         let gameActive = false;
+        let currentRoomId = null;
+        let currentRoomPlayers = [];
+        let roomRef = null;
+
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        function createDeck() {
+            const deck = [];
+            colors.forEach(color => {
+                numbers.forEach(number => {
+                    deck.push({ color, number });
+                });
+            });
+            return deck;
+        }
+
+        function drawCard(deck) {
+            const randomIndex = Math.floor(Math.random() * deck.length);
+            return deck.splice(randomIndex, 1)[0];
+        }
+
+        function renderCard(card) {
+            return `<div class="card ${card.color}" data-color="${card.color}" data-number="${card.number}">${card.number}</div>`;
+        }
 
         function startGame() {
-            playerName = playerNameInput.value || "Player";
-            score = 0;
+            playerName = playerNameInput.value || 'Player';
+            startScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
             gameActive = true;
 
-            startScreen.classList.remove('active');
-            gameOverScreen.classList.remove('active');
-            leaderboardScreen.classList.remove('active');
-            gameContainer.style.display = 'block';
+            const deck = createDeck();
+            playerHand = [];
+            for (let i = 0; i < 5; i++) {
+                playerHand.push(drawCard(deck));
+            }
+            currentCard = drawCard(deck);
+            currentCardDiv.textContent = `${currentCard.number}`;
+            currentCardDiv.className = `card ${currentCard.color}`;
+            updatePlayerHand();
+            updateRoomPlayers();
+        }
 
-            moveTarget();
-            gameLoop();
+        function updatePlayerHand() {
+            playerHandDiv.innerHTML = '';
+            playerHand.forEach(card => {
+                playerHandDiv.innerHTML += renderCard(card);
+            });
+            addCardClickEvents();
+        }
+
+        function addCardClickEvents() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const color = card.dataset.color;
+                    const number = card.dataset.number;
+                    if (color === currentCard.color || number === currentCard.number) {
+                        currentCard = { color, number };
+                        currentCardDiv.textContent = `${currentCard.number}`;
+                        currentCardDiv.className = `card ${currentCard.color}`;
+                        playerHand = playerHand.filter(
+                            c => c.color !== color || c.number !== number
+                        );
+                        updatePlayerHand();
+                        if (playerHand.length === 0) {
+                            gameOver();
+                        }
+                    } else {
+                        messageDiv.textContent = 'Invalid move! Try again.';
+                    }
+                });
+            });
         }
 
         function gameOver() {
             gameActive = false;
+            alert(`${playerName} wins!`);
+            startScreen.style.display = 'block';
             gameContainer.style.display = 'none';
-            gameOverScreen.classList.add('active');
-            finalScore.textContent = score;
-
-            const leaderboardRef = ref(db, 'leaderboard');
-            push(leaderboardRef, { name: playerName, score: score });
         }
 
-        function moveTarget() {
-            if (!gameActive) return;
-            target.style.top = `${Math.random() * 90}%`;
-            target.style.left = `${Math.random() * 90}%`;
-            setTimeout(moveTarget, 2000 - Math.min(score * 10, 1500));
-        }
-
-        function gameLoop() {
-            if (!gameActive) return;
-            score++;
-            setTimeout(gameLoop, 100);
-        }
-
-        function showLeaderboard() {
-            leaderboardScreen.classList.add('active');
-            startScreen.classList.remove('active');
-            gameOverScreen.classList.remove('active');
-
-            const leaderboardRef = ref(db, 'leaderboard');
-            onValue(leaderboardRef, (snapshot) => {
+        function updateRoomPlayers() {
+            if (!currentRoomId) return;
+            const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
+            onValue(roomPlayersRef, (snapshot) => {
                 const data = snapshot.val();
-                leaderboardList.innerHTML = '';
-                for (const key in data) {
-                    const entry = data[key];
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${entry.name}: ${entry.score}`;
-                    leaderboardList.appendChild(listItem);
+                currentRoomPlayers = data ? Object.values(data) : [];
+                if (currentRoomPlayers.length >= 3) {
+                    messageDiv.textContent = 'Room is ready! Game can start now.';
+                } else {
+                    messageDiv.textContent = `Waiting for more players... (${currentRoomPlayers.length}/3)`;
                 }
             });
         }
 
+        function joinRoom(roomId) {
+            currentRoomId = roomId;
+            const roomRef = ref(db, `rooms/${roomId}`);
+            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+            set(playerRef, { name: playerName });
+            updateRoomPlayers();
+        }
+
+        function createRoom() {
+            const roomId = push(ref(db, 'rooms')).key;
+            set(ref(db, `rooms/${roomId}`), { players: {} });
+            currentRoomId = roomId;
+            joinRoom(roomId);
+        }
+
+        function displayRooms() {
+            const roomsRef = ref(db, 'rooms');
+            onValue(roomsRef, (snapshot) => {
+                const rooms = snapshot.val();
+                roomListDiv.innerHTML = '';
+                for (const roomId in rooms) {
+                    const room = rooms[roomId];
+                    const roomPlayers = Object.values(room.players);
+                    const roomItem = document.createElement('div');
+                    roomItem.className = 'room-item';
+                    roomItem.textContent = `Room ${roomId} - Players: ${roomPlayers.length}/3`;
+                    roomItem.addEventListener('click', () => joinRoom(roomId));
+                    roomListDiv.appendChild(roomItem);
+                }
+            });
+        }
+
+        // Event Listeners
         startGameButton.addEventListener('click', startGame);
-        restartGameButton.addEventListener('click', startGame);
-        backToStartButton.addEventListener('click', () => {
-            leaderboardScreen.classList.remove('active');
-            startScreen.classList.add('active');
-        });
+        createRoomButton.addEventListener('click', createRoom);
+        window.addEventListener('load', displayRooms);
     </script>
 </body>
 </html>
