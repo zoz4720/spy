@@ -331,13 +331,50 @@
         }
 
         function joinRoom(roomId) {
-            currentRoomId = roomId;
-            const roomRef = ref(db, `rooms/${roomId}`);
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            set(playerRef, { name: playerName }).then(() => {
-                updateRoomPlayers();
-            });
+    currentRoomId = roomId;
+    const roomRef = ref(db, `rooms/${roomId}`);
+    const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+
+    // التأكد من وجود الغرفة
+    onValue(roomRef, (snapshot) => {
+        if (!snapshot.exists()) {
+            messageDiv.textContent = 'Room does not exist!';
+            return;
         }
+
+        // إضافة اللاعب إلى الغرفة
+        set(playerRef, { name: playerName }).then(() => {
+            updateRoomPlayers();
+        }).catch((error) => {
+            messageDiv.textContent = 'Failed to join room. Please try again.';
+            console.error(error);
+        });
+    });
+}
+
+function updateRoomPlayers() {
+    if (!currentRoomId) return;
+    const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
+    onValue(roomPlayersRef, (snapshot) => {
+        const data = snapshot.val();
+        currentRoomPlayers = data ? Object.values(data) : [];
+        displayPlayersInRoom();
+    });
+}
+
+function displayPlayersInRoom() {
+    roomListDiv.innerHTML = '';
+    currentRoomPlayers.forEach(player => {
+        const playerDiv = document.createElement('div');
+        playerDiv.className = 'room-item';
+        playerDiv.textContent = player.name;
+        roomListDiv.appendChild(playerDiv);
+    });
+
+    if (currentRoomPlayers.length >= numPlayers && !playerReady) {
+        readyButton.style.display = 'inline-block';
+    }
+}
 
         function createRoom() {
             const roomId = push(ref(db, 'rooms')).key;
