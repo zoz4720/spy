@@ -5,7 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-        /* Add previous styles here */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: #fff;
+        }
+        #start-screen {
+            display: block;
+            margin-top: 20px;
+        }
+        #game-container {
+            display: none;
+            margin: 20px auto;
+            padding: 20px;
+            background: #444;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+        }
+        .card {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.1);
+        }
+        .red { background: #e74c3c; }
+        .blue { background: #3498db; }
+        .green { background: #2ecc71; }
+        .yellow { background: #f1c40f; color: #222; }
+        #current-card {
+            margin: 20px auto;
+            padding: 20px;
+            font-size: 24px;
+            color: #fff;
+            border-radius: 10px;
+            width: 150px;
+            height: 200px;
+            line-height: 160px;
+            text-align: center;
+        }
+        #message {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .room-list, .room-item {
+            padding: 10px;
+            margin: 5px;
+            background-color: #333;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #room-code {
+            margin-top: 10px;
+        }
+        #chat-container {
+            margin-top: 20px;
+            width: 100%;
+            height: 150px;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            overflow-y: scroll;
+        }
+        #chat-input {
+            width: 80%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        #chat-send {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: #2ecc71;
+            color: #fff;
+            cursor: pointer;
+        }
+        #ready-button {
+            padding: 10px 20px;
+            background-color: #f39c12;
+            color: #fff;
+            cursor: pointer;
+        }
+        #ready-button:hover {
+            background-color: #e67e22;
+        }
 
         #room-settings {
             margin-top: 20px;
