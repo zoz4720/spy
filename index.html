@@ -25,6 +25,7 @@
             overflow: hidden;
             border: 3px solid #fff;
             border-radius: 10px;
+            display: none; /* مخفي افتراضيًا */
         }
         .rocket, .target, .obstacle {
             position: absolute;
@@ -33,6 +34,7 @@
         .rocket {
             width: 15px;
             height: 25px;
+            background: red;
         }
         .target {
             width: 50px;
@@ -45,18 +47,19 @@
             background: gray;
         }
         #start-screen, #game-over-screen, #leaderboard {
-            display: none;
+            display: none; /* مخفي افتراضيًا */
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.8); /* شفافية */
             padding: 20px;
             border-radius: 10px;
+            z-index: 1000; /* أعلى طبقة */
         }
         #start-screen.active, #game-over-screen.active, #leaderboard.active {
-            display: block;
+            display: block; /* يظهر عند الحاجة */
         }
         #leaderboard ul {
             list-style: none;
@@ -125,6 +128,7 @@
   appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
   measurementId: "G-NWXDDDRPRH"
 };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -151,9 +155,12 @@
             playerName = playerNameInput.value || "Player";
             score = 0;
             gameActive = true;
+
             startScreen.classList.remove('active');
             gameOverScreen.classList.remove('active');
+            leaderboardScreen.classList.remove('active');
             gameContainer.style.display = 'block';
+
             moveTarget();
             gameLoop();
         }
@@ -164,7 +171,6 @@
             gameOverScreen.classList.add('active');
             finalScore.textContent = score;
 
-            // Save score to Firebase
             const leaderboardRef = ref(db, 'leaderboard');
             push(leaderboardRef, { name: playerName, score: score });
         }
@@ -178,9 +184,6 @@
 
         function gameLoop() {
             if (!gameActive) return;
-
-            // Check collisions (example logic)
-            // Update score
             score++;
             setTimeout(gameLoop, 100);
         }
@@ -190,7 +193,6 @@
             startScreen.classList.remove('active');
             gameOverScreen.classList.remove('active');
 
-            // Fetch leaderboard data
             const leaderboardRef = ref(db, 'leaderboard');
             onValue(leaderboardRef, (snapshot) => {
                 const data = snapshot.val();
