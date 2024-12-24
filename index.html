@@ -121,6 +121,7 @@
             <button id="join-room">Join Room</button>
         </div>
         <button id="create-room">Create Room</button>
+        <p id="room-created-message" style="color: green; display: none;"></p>
     </div>
 
     <!-- Game Screen -->
@@ -141,7 +142,7 @@
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
         // Firebase Config
-        const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
   databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
@@ -168,6 +169,7 @@
         const createRoomButton = document.getElementById('create-room');
         const joinRoomButton = document.getElementById('join-room');
         const roomIdInput = document.getElementById('room-id-input');
+        const roomCreatedMessage = document.getElementById('room-created-message');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const chatSendButton = document.getElementById('chat-send');
@@ -289,6 +291,8 @@
             const roomId = push(ref(db, 'rooms')).key;
             set(ref(db, `rooms/${roomId}`), { players: {} });
             currentRoomId = roomId;
+            roomCreatedMessage.style.display = 'block';
+            roomCreatedMessage.textContent = `Room created! Room ID: ${roomId}`;
             joinRoom(roomId);
         }
 
