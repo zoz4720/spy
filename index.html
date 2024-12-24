@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-        body {
+       body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #222;
@@ -111,6 +111,18 @@
         #ready-button:hover {
             background-color: #e67e22;
         }
+
+        #room-settings {
+            margin-top: 20px;
+        }
+
+        .setting-item {
+            margin: 10px 0;
+        }
+
+        .setting-item input {
+            width: 80px;
+        }
     </style>
 </head>
 <body>
@@ -130,6 +142,21 @@
             <button id="join-room">Join Room</button>
         </div>
         <button id="create-room">Create Room</button>
+
+        <!-- Room Settings -->
+        <div id="room-settings" style="display: none;">
+            <h3>Room Settings</h3>
+            <div class="setting-item">
+                <label for="num-players">Number of Players:</label>
+                <input type="number" id="num-players" min="3" max="6" value="3">
+            </div>
+            <div class="setting-item">
+                <label for="turn-time">Turn Time (seconds):</label>
+                <input type="number" id="turn-time" min="10" max="60" value="30">
+            </div>
+            <button id="save-room-settings">Save Settings</button>
+        </div>
+
         <p id="room-created-message" style="color: green; display: none;"></p>
     </div>
 
@@ -150,7 +177,7 @@
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
         // Firebase Config
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
   databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
@@ -178,10 +205,14 @@
         const joinRoomButton = document.getElementById('join-room');
         const roomIdInput = document.getElementById('room-id-input');
         const roomCreatedMessage = document.getElementById('room-created-message');
+        const roomSettingsDiv = document.getElementById('room-settings');
+        const numPlayersInput = document.getElementById('num-players');
+        const turnTimeInput = document.getElementById('turn-time');
+        const saveRoomSettingsButton = document.getElementById('save-room-settings');
+        const readyButton = document.getElementById('ready-button');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const chatSendButton = document.getElementById('chat-send');
-        const readyButton = document.getElementById('ready-button');
 
         let playerName = '';
         let playerHand = [];
@@ -192,6 +223,8 @@
         let roomRef = null;
         let currentPlayerIndex = 0;
         let playerReady = false;
+        let turnTime = 30;  // Default turn time
+        let numPlayers = 3; // Default number of players
 
         const colors = ['red', 'blue', 'green', 'yellow'];
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -231,11 +264,6 @@
             currentCardDiv.className = `card ${currentCard.color}`;
             updatePlayerHand();
             updateRoomPlayers();
-
-            // Save state to localStorage
-            localStorage.setItem('playerName', playerName);
-            localStorage.setItem('currentRoomId', currentRoomId);
-            localStorage.setItem('gameActive', gameActive);
         }
 
         function updatePlayerHand() {
@@ -277,9 +305,6 @@
             alert(`${playerName} wins!`);
             startScreen.style.display = 'block';
             gameContainer.style.display = 'none';
-
-            // Save game state to localStorage
-            localStorage.setItem('gameActive', gameActive);
         }
 
         function updateRoomPlayers() {
@@ -300,7 +325,7 @@
                 playerDiv.textContent = player.name;
                 roomListDiv.appendChild(playerDiv);
             });
-            if (currentRoomPlayers.length >= 3 && !playerReady) {
+            if (currentRoomPlayers.length >= numPlayers && !playerReady) {
                 readyButton.style.display = 'inline-block';
             }
         }
@@ -316,7 +341,13 @@
 
         function createRoom() {
             const roomId = push(ref(db, 'rooms')).key;
-            set(ref(db, `rooms/${roomId}`), { players: {} });
+            set(ref(db, `rooms/${roomId}`), {
+                players: {},
+                settings: {
+                    numPlayers: numPlayers,
+                    turnTime: turnTime
+                }
+            });
             currentRoomId = roomId;
             roomCreatedMessage.style.display = 'block';
             roomCreatedMessage.textContent = `Room created! Room ID: ${roomId}`;
@@ -335,36 +366,40 @@
             onValue(chatRef, (snapshot) => {
                 const data = snapshot.val();
                 chatContainer.innerHTML = '';
-                for (const message in data) {
-                    const chatMessage = data[message];
-                    chatContainer.innerHTML += `<p><strong>${chatMessage.player}:</strong> ${chatMessage.message}</p>`;
+                for (let key in data) {
+                    const chatMessage = data[key];
+                    chatContainer.innerHTML += `<p><strong>${chatMessage.player}: </strong>${chatMessage.message}</p>`;
                 }
             });
         }
 
-        readyButton.addEventListener('click', () => {
-            if (!playerReady) {
-                playerReady = true;
-                updateRoomPlayers();
-                readyButton.textContent = 'Waiting for other players...';
-                readyButton.style.backgroundColor = '#f39c12';
-            }
+        createRoomButton.addEventListener('click', () => {
+            roomSettingsDiv.style.display = 'block';
         });
 
-        startGameButton.addEventListener('click', startGame);
+        saveRoomSettingsButton.addEventListener('click', () => {
+            numPlayers = parseInt(numPlayersInput.value);
+            turnTime = parseInt(turnTimeInput.value);
+            roomSettingsDiv.style.display = 'none';
+            createRoom();
+        });
+
         joinRoomButton.addEventListener('click', () => {
             const roomId = roomIdInput.value;
             if (roomId) {
                 joinRoom(roomId);
             }
         });
-        createRoomButton.addEventListener('click', createRoom);
+
+        startGameButton.addEventListener('click', startGame);
+
         chatSendButton.addEventListener('click', () => {
             const message = chatInput.value;
             if (message) {
                 sendChatMessage(message);
             }
         });
+
         updateChat();
     </script>
 </body>
