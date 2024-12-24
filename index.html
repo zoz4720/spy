@@ -72,6 +72,9 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        #room-code {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +88,11 @@
         <button id="start-game">Start Game</button>
         <h3>Join or Create a Room</h3>
         <div id="room-list" class="room-list"></div>
+        <div id="room-code">
+            <p>Enter Room Code:</p>
+            <input type="text" id="room-id-input" placeholder="Room ID">
+            <button id="join-room">Join Room</button>
+        </div>
         <button id="create-room">Create Room</button>
     </div>
 
@@ -126,6 +134,8 @@
         const messageDiv = document.getElementById('message');
         const roomListDiv = document.getElementById('room-list');
         const createRoomButton = document.getElementById('create-room');
+        const joinRoomButton = document.getElementById('join-room');
+        const roomIdInput = document.getElementById('room-id-input');
 
         let playerName = '';
         let playerHand = [];
@@ -232,8 +242,9 @@
             currentRoomId = roomId;
             const roomRef = ref(db, `rooms/${roomId}`);
             const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            set(playerRef, { name: playerName });
-            updateRoomPlayers();
+            set(playerRef, { name: playerName }).then(() => {
+                updateRoomPlayers();
+            });
         }
 
         function createRoom() {
@@ -243,27 +254,14 @@
             joinRoom(roomId);
         }
 
-        function displayRooms() {
-            const roomsRef = ref(db, 'rooms');
-            onValue(roomsRef, (snapshot) => {
-                const rooms = snapshot.val();
-                roomListDiv.innerHTML = '';
-                for (const roomId in rooms) {
-                    const room = rooms[roomId];
-                    const roomPlayers = Object.values(room.players);
-                    const roomItem = document.createElement('div');
-                    roomItem.className = 'room-item';
-                    roomItem.textContent = `Room ${roomId} - Players: ${roomPlayers.length}/3`;
-                    roomItem.addEventListener('click', () => joinRoom(roomId));
-                    roomListDiv.appendChild(roomItem);
-                }
-            });
-        }
-
-        // Event Listeners
         startGameButton.addEventListener('click', startGame);
+        joinRoomButton.addEventListener('click', () => {
+            const roomId = roomIdInput.value;
+            if (roomId) {
+                joinRoom(roomId);
+            }
+        });
         createRoomButton.addEventListener('click', createRoom);
-        window.addEventListener('load', displayRooms);
     </script>
 </body>
 </html>
