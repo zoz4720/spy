@@ -5,115 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-       body {
+        /* General styles */
+        body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: #fff;
-        }
-        #start-screen {
-            display: block;
-            margin-top: 20px;
-        }
-        #game-container {
-            display: none;
-            margin: 20px auto;
-            padding: 20px;
-            background: #444;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 600px;
-        }
-        .card {
-            display: inline-block;
-            margin: 10px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 20px;
-            color: #fff;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: scale(1.1);
-        }
-        .red { background: #e74c3c; }
-        .blue { background: #3498db; }
-        .green { background: #2ecc71; }
-        .yellow { background: #f1c40f; color: #222; }
-        #current-card {
-            margin: 20px auto;
-            padding: 20px;
-            font-size: 24px;
-            color: #fff;
-            border-radius: 10px;
-            width: 150px;
-            height: 200px;
-            line-height: 160px;
-            text-align: center;
-        }
-        #message {
-            margin: 10px 0;
-            font-size: 18px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #3498db;
-            color: #fff;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #2980b9;
-        }
-        .room-list, .room-item {
-            padding: 10px;
-            margin: 5px;
-            background-color: #333;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #room-code {
-            margin-top: 10px;
-        }
-        #chat-container {
-            margin-top: 20px;
-            width: 100%;
-            height: 150px;
-            background-color: #333;
-            padding: 10px;
-            border-radius: 10px;
-            overflow-y: scroll;
-        }
-        #chat-input {
-            width: 80%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        #chat-send {
-            padding: 10px 20px;
-            margin-top: 10px;
-            border-radius: 5px;
-            background-color: #2ecc71;
-            color: #fff;
-            cursor: pointer;
-        }
-        #ready-button {
-            padding: 10px 20px;
-            background-color: #f39c12;
-            color: #fff;
-            cursor: pointer;
-        }
-        #ready-button:hover {
-            background-color: #e67e22;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
         }
 
+        h1, h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+
+        #start-screen, #game-container {
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        /* Room and settings container */
         #room-settings {
             margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .setting-item {
@@ -123,19 +44,108 @@
         .setting-item input {
             width: 80px;
         }
+
+        #room-list {
+            margin-top: 20px;
+        }
+
+        .room-item {
+            background-color: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #chat-container {
+            max-height: 200px;
+            overflow-y: scroll;
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            display: inline-block;
+            padding: 15px;
+            margin: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .card.red { background-color: red; color: white; }
+        .card.blue { background-color: blue; color: white; }
+        .card.green { background-color: green; color: white; }
+        .card.yellow { background-color: yellow; color: black; }
+
+        #current-card {
+            font-size: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #message {
+            margin-top: 10px;
+            color: red;
+        }
+
+        #ready-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #ready-button:hover {
+            background-color: #45a049;
+        }
+
+        #chat-input {
+            padding: 10px;
+            width: 80%;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        #chat-send {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+
+        #chat-send:hover {
+            background-color: #007bb5;
+        }
+
+        .room-item {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>Card Clash</h1>
-
-    <!-- Start Screen -->
     <div id="start-screen">
-        <h2>Welcome to Card Clash</h2>
+        <h1>Card Clash</h1>
         <p>Enter your name:</p>
         <input type="text" id="player-name" placeholder="Your Name">
         <button id="start-game">Start Game</button>
+
         <h3>Join or Create a Room</h3>
-        <div id="room-list" class="room-list"></div>
+        <div id="room-list"></div>
         <div id="room-code">
             <p>Enter Room Code:</p>
             <input type="text" id="room-id-input" placeholder="Room ID">
@@ -143,7 +153,6 @@
         </div>
         <button id="create-room">Create Room</button>
 
-        <!-- Room Settings -->
         <div id="room-settings" style="display: none;">
             <h3>Room Settings</h3>
             <div class="setting-item">
@@ -160,13 +169,14 @@
         <p id="room-created-message" style="color: green; display: none;"></p>
     </div>
 
-    <!-- Game Screen -->
-    <div id="game-container">
-        <div id="current-card" class="card"></div>
+    <div id="game-container" style="display: none;">
+        <h2>Game Room</h2>
+        <div id="current-card"></div>
         <div id="player-hand"></div>
         <button id="draw-card">Draw Card</button>
         <p id="message"></p>
         <button id="ready-button" style="display: none;">Ready!</button>
+
         <div id="chat-container"></div>
         <input type="text" id="chat-input" placeholder="Type your message...">
         <button id="chat-send">Send</button>
@@ -176,8 +186,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-        // Firebase Config
-        const firebaseConfig = {
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
   databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
@@ -392,6 +402,12 @@
         });
 
         startGameButton.addEventListener('click', startGame);
+
+        readyButton.addEventListener('click', () => {
+            playerReady = true;
+            readyButton.style.display = 'none';
+            messageDiv.textContent = 'Waiting for other players...';
+        });
 
         chatSendButton.addEventListener('click', () => {
             const message = chatInput.value;
