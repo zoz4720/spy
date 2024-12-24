@@ -200,6 +200,15 @@
             margin: 10px;
             color: #34495e;
         }
+
+        /* Show room code */
+        #room-code-display {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -230,6 +239,10 @@
             </div>
             <button id="save-room-settings">Save Settings</button>
         </div>
+
+        <!-- Display the generated Room Code -->
+        <div id="room-code-display" class="hidden"></div>
+
     </div>
 
     <div id="game-container" class="hidden">
@@ -252,7 +265,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-       const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
   databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
@@ -281,6 +294,7 @@
         const roomIdInput = document.getElementById('room-id-input');
         const roomSettingsDiv = document.getElementById('room-settings');
         const saveRoomSettingsButton = document.getElementById('save-room-settings');
+        const roomCodeDisplay = document.getElementById('room-code-display');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const chatSendButton = document.getElementById('chat-send');
@@ -317,6 +331,8 @@
             }).then(() => {
                 currentRoomId = roomId;
                 roomSettingsDiv.classList.add('hidden');
+                roomCodeDisplay.textContent = `Your Room Code: ${roomId}`;
+                roomCodeDisplay.classList.remove('hidden');
                 setGameRoom();
             });
         });
