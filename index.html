@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-        /* General Styles */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #e9f7f9;
@@ -18,12 +17,10 @@
             color: #333;
             overflow: hidden;
         }
-
         h1, h2, h3 {
             color: #2c3e50;
             font-weight: 600;
         }
-
         #start-screen, #game-container {
             width: 90%;
             max-width: 850px;
@@ -34,7 +31,16 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             margin: 20px;
         }
-
+        .setting-item {
+            margin: 15px 0;
+        }
+        .setting-item input {
+            width: 70px;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
         #room-settings {
             margin-top: 20px;
             padding: 20px;
@@ -42,29 +48,6 @@
             border-radius: 10px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
-
-        .setting-item {
-            margin: 15px 0;
-        }
-
-        .setting-item input {
-            width: 70px;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            outline: none;
-        }
-
-        .setting-item label {
-            font-size: 14px;
-            color: #555;
-        }
-
-        #room-list {
-            margin-top: 20px;
-        }
-
         .room-item {
             background-color: #f3f6f9;
             padding: 12px;
@@ -72,15 +55,10 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
             cursor: pointer;
-            font-size: 16px;
-            color: #3498db;
         }
-
         .room-item:hover {
             background-color: #ebf4fb;
         }
-
-        /* Card Styles */
         .card {
             display: inline-block;
             width: 90px;
@@ -94,13 +72,10 @@
             line-height: 120px;
             cursor: pointer;
         }
-
         .card.red { background-color: #ff4d4d; color: white; }
         .card.blue { background-color: #4d80ff; color: white; }
         .card.green { background-color: #50c878; color: white; }
         .card.yellow { background-color: #fbc02d; color: black; }
-
-        /* Ready Button */
         #ready-button {
             background-color: #27ae60;
             color: white;
@@ -109,14 +84,10 @@
             font-size: 18px;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 30px;
         }
-
         #ready-button:hover {
             background-color: #2ecc71;
         }
-
-        /* Chat Styles */
         #chat-container {
             max-height: 250px;
             overflow-y: auto;
@@ -125,21 +96,14 @@
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            font-size: 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
         }
-
         #chat-input {
             padding: 12px;
             width: 80%;
             border-radius: 5px;
             margin-top: 15px;
             border: 1px solid #ddd;
-            font-size: 14px;
         }
-
         #chat-send {
             background-color: #2980b9;
             color: white;
@@ -150,12 +114,9 @@
             border: none;
             margin-left: 10px;
         }
-
         #chat-send:hover {
             background-color: #1f6698;
         }
-
-        /* Game Section */
         #current-card {
             font-size: 32px;
             padding: 20px;
@@ -166,49 +127,15 @@
             display: inline-block;
             min-width: 100px;
         }
-
-        #message {
-            margin-top: 10px;
-            color: #e74c3c;
-        }
-
-        /* Miscellaneous */
         .hidden {
             display: none;
         }
-
-        .room-item:hover {
-            background-color: #d0e8f2;
-        }
-
-        .game-elements {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #player-hand {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .player-item {
-            font-size: 16px;
-            margin: 10px;
-            color: #34495e;
-        }
-
-        /* Show room code */
         #room-code-display {
             margin-top: 20px;
             font-size: 18px;
             color: #2c3e50;
             font-weight: bold;
         }
-
     </style>
 </head>
 <body>
@@ -240,7 +167,6 @@
             <button id="save-room-settings">Save Settings</button>
         </div>
 
-        <!-- Display the generated Room Code -->
         <div id="room-code-display" class="hidden"></div>
 
     </div>
@@ -248,9 +174,7 @@
     <div id="game-container" class="hidden">
         <h2>Game Room</h2>
         <div id="current-card">Current Card: </div>
-        <div class="game-elements">
-            <div id="player-hand"></div>
-        </div>
+        <div id="player-hand"></div>
         <button id="draw-card">Draw Card</button>
         <p id="message"></p>
         <button id="ready-button" class="hidden">Ready!</button>
@@ -261,7 +185,6 @@
     </div>
 
     <script type="module">
-        // Firebase Setup
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
@@ -275,11 +198,9 @@
   appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
   measurementId: "G-NWXDDDRPRH"
 };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // UI Elements
         const startScreen = document.getElementById('start-screen');
         const gameContainer = document.getElementById('game-container');
         const playerNameInput = document.getElementById('player-name');
@@ -310,19 +231,29 @@
 
         const allCards = [
             { color: 'red', value: '1' },
+            { color: 'red', value: '2' },
+            { color: 'red', value: '3' },
+            { color: 'red', value: '4' },
+            { color: 'blue', value: '1' },
             { color: 'blue', value: '2' },
+            { color: 'blue', value: '3' },
+            { color: 'blue', value: '4' },
+            { color: 'green', value: '1' },
+            { color: 'green', value: '2' },
             { color: 'green', value: '3' },
+            { color: 'green', value: '4' },
+            { color: 'yellow', value: '1' },
+            { color: 'yellow', value: '2' },
+            { color: 'yellow', value: '3' },
             { color: 'yellow', value: '4' },
-            { color: 'red', value: '5' },
-            { color: 'blue', value: '6' },
-            { color: 'green', value: '7' },
-            { color: 'yellow', value: '8' },
-            { color: 'red', value: '9' },
-            { color: 'blue', value: '10' },
-            { color: 'green', value: 'skip' },
-            { color: 'yellow', value: 'reverse' },
             { color: 'red', value: 'reverse' },
-            { color: 'blue', value: 'skip' }
+            { color: 'blue', value: 'reverse' },
+            { color: 'green', value: 'reverse' },
+            { color: 'yellow', value: 'reverse' },
+            { color: 'red', value: 'skip' },
+            { color: 'blue', value: 'skip' },
+            { color: 'green', value: 'skip' },
+            { color: 'yellow', value: 'skip' }
         ];
 
         // Start Game
@@ -366,6 +297,9 @@
                 if (roomData) {
                     currentRoomPlayers = roomData.players;
                     renderRoomPlayers();
+                    if (roomData.players.length === numPlayers) {
+                        startGame();
+                    }
                 }
             });
             joinRoomButton.disabled = true;
@@ -431,6 +365,44 @@
             }
         }
 
+        updateChat();
+
+        // Draw cards functionality
+        drawCardButton.addEventListener('click', () => {
+            if (cardsInHand.length === 0) {
+                alert('You have no cards!');
+            } else {
+                const card = cardsInHand.pop();
+                currentCardDiv.textContent = `Current Card: ${card.color} ${card.value}`;
+                renderPlayerHand();
+            }
+        });
+
+        function startGame() {
+            cardsInHand = [...allCards]; // Reshuffle cards for each game
+            shuffleArray(cardsInHand);
+            renderPlayerHand();
+        }
+
+        function renderPlayerHand() {
+            playerHandDiv.innerHTML = '';
+            cardsInHand.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('card', card.color);
+                cardDiv.textContent = card.value;
+                playerHandDiv.appendChild(cardDiv);
+            });
+        }
+
+        // Utility function to shuffle the cards
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Initial chat update
         updateChat();
     </script>
 </body>
