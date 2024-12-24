@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Clash</title>
+    <title>Card Clash - Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -102,6 +102,15 @@
             color: #fff;
             cursor: pointer;
         }
+        #ready-button {
+            padding: 10px 20px;
+            background-color: #f39c12;
+            color: #fff;
+            cursor: pointer;
+        }
+        #ready-button:hover {
+            background-color: #e67e22;
+        }
     </style>
 </head>
 <body>
@@ -130,9 +139,8 @@
         <div id="player-hand"></div>
         <button id="draw-card">Draw Card</button>
         <p id="message"></p>
-        <div id="chat-container">
-            <!-- Chat will appear here -->
-        </div>
+        <button id="ready-button" style="display: none;">Ready!</button>
+        <div id="chat-container"></div>
         <input type="text" id="chat-input" placeholder="Type your message...">
         <button id="chat-send">Send</button>
     </div>
@@ -173,6 +181,7 @@
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const chatSendButton = document.getElementById('chat-send');
+        const readyButton = document.getElementById('ready-button');
 
         let playerName = '';
         let playerHand = [];
@@ -182,6 +191,7 @@
         let currentRoomPlayers = [];
         let roomRef = null;
         let currentPlayerIndex = 0;
+        let playerReady = false;
 
         const colors = ['red', 'blue', 'green', 'yellow'];
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -221,6 +231,11 @@
             currentCardDiv.className = `card ${currentCard.color}`;
             updatePlayerHand();
             updateRoomPlayers();
+
+            // Save state to localStorage
+            localStorage.setItem('playerName', playerName);
+            localStorage.setItem('currentRoomId', currentRoomId);
+            localStorage.setItem('gameActive', gameActive);
         }
 
         function updatePlayerHand() {
@@ -262,6 +277,9 @@
             alert(`${playerName} wins!`);
             startScreen.style.display = 'block';
             gameContainer.style.display = 'none';
+
+            // Save game state to localStorage
+            localStorage.setItem('gameActive', gameActive);
         }
 
         function updateRoomPlayers() {
@@ -270,12 +288,21 @@
             onValue(roomPlayersRef, (snapshot) => {
                 const data = snapshot.val();
                 currentRoomPlayers = data ? Object.values(data) : [];
-                if (currentRoomPlayers.length >= 3) {
-                    messageDiv.textContent = 'Room is ready! Game can start now.';
-                } else {
-                    messageDiv.textContent = `Waiting for more players... (${currentRoomPlayers.length}/3)`;
-                }
+                displayPlayersInRoom();
             });
+        }
+
+        function displayPlayersInRoom() {
+            roomListDiv.innerHTML = '';
+            currentRoomPlayers.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'room-item';
+                playerDiv.textContent = player.name;
+                roomListDiv.appendChild(playerDiv);
+            });
+            if (currentRoomPlayers.length >= 3 && !playerReady) {
+                readyButton.style.display = 'inline-block';
+            }
         }
 
         function joinRoom(roomId) {
@@ -315,6 +342,15 @@
             });
         }
 
+        readyButton.addEventListener('click', () => {
+            if (!playerReady) {
+                playerReady = true;
+                updateRoomPlayers();
+                readyButton.textContent = 'Waiting for other players...';
+                readyButton.style.backgroundColor = '#f39c12';
+            }
+        });
+
         startGameButton.addEventListener('click', startGame);
         joinRoomButton.addEventListener('click', () => {
             const roomId = roomIdInput.value;
@@ -329,7 +365,6 @@
                 sendChatMessage(message);
             }
         });
-
         updateChat();
     </script>
 </body>
