@@ -5,148 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9f7f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #333;
-            overflow: hidden;
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        #start-screen, #game-container {
-            width: 90%;
-            max-width: 850px;
-            text-align: center;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            margin: 20px;
-        }
-        .setting-item {
-            margin: 15px 0;
-        }
-        .setting-item input {
-            width: 70px;
-            padding: 8px;
-            margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
+        /* Add previous styles here */
+
         #room-settings {
             margin-top: 20px;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
         }
-        .room-item {
-            background-color: #f3f6f9;
-            padding: 12px;
+
+        .setting-item {
             margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
         }
-        .room-item:hover {
-            background-color: #ebf4fb;
-        }
-        .card {
-            display: inline-block;
-            width: 90px;
-            height: 120px;
-            background-color: #fff;
-            border-radius: 8px;
-            margin: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 24px;
-            text-align: center;
-            line-height: 120px;
-            cursor: pointer;
-        }
-        .card.red { background-color: #ff4d4d; color: white; }
-        .card.blue { background-color: #4d80ff; color: white; }
-        .card.green { background-color: #50c878; color: white; }
-        .card.yellow { background-color: #fbc02d; color: black; }
-        #ready-button {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        #ready-button:hover {
-            background-color: #2ecc71;
-        }
-        #chat-container {
-            max-height: 250px;
-            overflow-y: auto;
-            margin-top: 20px;
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        #chat-input {
-            padding: 12px;
-            width: 80%;
-            border-radius: 5px;
-            margin-top: 15px;
-            border: 1px solid #ddd;
-        }
-        #chat-send {
-            background-color: #2980b9;
-            color: white;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            border: none;
-            margin-left: 10px;
-        }
-        #chat-send:hover {
-            background-color: #1f6698;
-        }
-        #current-card {
-            font-size: 32px;
-            padding: 20px;
-            margin-top: 20px;
-            background-color: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: inline-block;
-            min-width: 100px;
-        }
-        .hidden {
-            display: none;
-        }
-        #room-code-display {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #2c3e50;
-            font-weight: bold;
+
+        .setting-item input {
+            width: 80px;
         }
     </style>
 </head>
 <body>
+    <h1>Card Clash</h1>
+
+    <!-- Start Screen -->
     <div id="start-screen">
-        <h1>Card Clash</h1>
+        <h2>Welcome to Card Clash</h2>
         <p>Enter your name:</p>
         <input type="text" id="player-name" placeholder="Your Name">
         <button id="start-game">Start Game</button>
-
         <h3>Join or Create a Room</h3>
-        <div id="room-list"></div>
+        <div id="room-list" class="room-list"></div>
         <div id="room-code">
             <p>Enter Room Code:</p>
             <input type="text" id="room-id-input" placeholder="Room ID">
@@ -154,7 +38,8 @@
         </div>
         <button id="create-room">Create Room</button>
 
-        <div id="room-settings" class="hidden">
+        <!-- Room Settings -->
+        <div id="room-settings" style="display: none;">
             <h3>Room Settings</h3>
             <div class="setting-item">
                 <label for="num-players">Number of Players:</label>
@@ -167,18 +52,16 @@
             <button id="save-room-settings">Save Settings</button>
         </div>
 
-        <div id="room-code-display" class="hidden"></div>
-
+        <p id="room-created-message" style="color: green; display: none;"></p>
     </div>
 
-    <div id="game-container" class="hidden">
-        <h2>Game Room</h2>
-        <div id="current-card">Current Card: </div>
+    <!-- Game Screen -->
+    <div id="game-container" style="display: none;">
+        <div id="current-card" class="card"></div>
         <div id="player-hand"></div>
         <button id="draw-card">Draw Card</button>
         <p id="message"></p>
-        <button id="ready-button" class="hidden">Ready!</button>
-
+        <button id="ready-button" style="display: none;">Ready!</button>
         <div id="chat-container"></div>
         <input type="text" id="chat-input" placeholder="Type your message...">
         <button id="chat-send">Send</button>
@@ -188,7 +71,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-        const firebaseConfig = {
+        // Firebase Config
+       const firebaseConfig = {
   apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
   authDomain: "who-is-the-spy-51308.firebaseapp.com",
   databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
@@ -198,9 +82,11 @@
   appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
   measurementId: "G-NWXDDDRPRH"
 };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Elements
         const startScreen = document.getElementById('start-screen');
         const gameContainer = document.getElementById('game-container');
         const playerNameInput = document.getElementById('player-name');
@@ -213,196 +99,202 @@
         const createRoomButton = document.getElementById('create-room');
         const joinRoomButton = document.getElementById('join-room');
         const roomIdInput = document.getElementById('room-id-input');
+        const roomCreatedMessage = document.getElementById('room-created-message');
         const roomSettingsDiv = document.getElementById('room-settings');
+        const numPlayersInput = document.getElementById('num-players');
+        const turnTimeInput = document.getElementById('turn-time');
         const saveRoomSettingsButton = document.getElementById('save-room-settings');
-        const roomCodeDisplay = document.getElementById('room-code-display');
+        const readyButton = document.getElementById('ready-button');
         const chatContainer = document.getElementById('chat-container');
         const chatInput = document.getElementById('chat-input');
         const chatSendButton = document.getElementById('chat-send');
-        const readyButton = document.getElementById('ready-button');
 
         let playerName = '';
+        let playerHand = [];
+        let currentCard = {};
+        let gameActive = false;
         let currentRoomId = null;
         let currentRoomPlayers = [];
-        let numPlayers = 3;
-        let turnTime = 30;
         let roomRef = null;
-        let cardsInHand = [];
+        let currentPlayerIndex = 0;
+        let playerReady = false;
+        let turnTime = 30;  // Default turn time
+        let numPlayers = 3; // Default number of players
 
-        const allCards = [
-            { color: 'red', value: '1' },
-            { color: 'red', value: '2' },
-            { color: 'red', value: '3' },
-            { color: 'red', value: '4' },
-            { color: 'blue', value: '1' },
-            { color: 'blue', value: '2' },
-            { color: 'blue', value: '3' },
-            { color: 'blue', value: '4' },
-            { color: 'green', value: '1' },
-            { color: 'green', value: '2' },
-            { color: 'green', value: '3' },
-            { color: 'green', value: '4' },
-            { color: 'yellow', value: '1' },
-            { color: 'yellow', value: '2' },
-            { color: 'yellow', value: '3' },
-            { color: 'yellow', value: '4' },
-            { color: 'red', value: 'reverse' },
-            { color: 'blue', value: 'reverse' },
-            { color: 'green', value: 'reverse' },
-            { color: 'yellow', value: 'reverse' },
-            { color: 'red', value: 'skip' },
-            { color: 'blue', value: 'skip' },
-            { color: 'green', value: 'skip' },
-            { color: 'yellow', value: 'skip' }
-        ];
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-        // Start Game
-        startGameButton.addEventListener('click', () => {
-            playerName = playerNameInput.value.trim();
-            if (playerName.length > 0) {
-                startScreen.classList.add('hidden');
-                gameContainer.classList.remove('hidden');
-                setUpRoom();
-            } else {
-                alert("Please enter your name!");
-            }
-        });
-
-        // Set up room settings
-        createRoomButton.addEventListener('click', () => {
-            roomSettingsDiv.classList.remove('hidden');
-        });
-
-        saveRoomSettingsButton.addEventListener('click', () => {
-            numPlayers = document.getElementById('num-players').value;
-            turnTime = document.getElementById('turn-time').value;
-            roomRef = push(ref(db, 'rooms'));
-            set(roomRef, {
-                players: [{ name: playerName }],
-                turnTime: turnTime,
-                numPlayers: numPlayers
-            }).then(() => {
-                currentRoomId = roomRef.key;
-                roomCodeDisplay.textContent = `Room Code: ${currentRoomId}`;
-                roomCodeDisplay.classList.remove('hidden');
-                setGameRoom();
+        function createDeck() {
+            const deck = [];
+            colors.forEach(color => {
+                numbers.forEach(number => {
+                    deck.push({ color, number });
+                });
             });
-        });
-
-        // Create or join room
-        function setGameRoom() {
-            roomRef = ref(db, `rooms/${currentRoomId}`);
-            onValue(roomRef, (snapshot) => {
-                const roomData = snapshot.val();
-                if (roomData) {
-                    currentRoomPlayers = roomData.players;
-                    renderRoomPlayers();
-                    if (roomData.players.length === numPlayers) {
-                        startGame();
-                    }
-                }
-            });
-            joinRoomButton.disabled = true;
+            return deck;
         }
 
-        function renderRoomPlayers() {
+        function drawCard(deck) {
+            const randomIndex = Math.floor(Math.random() * deck.length);
+            return deck.splice(randomIndex, 1)[0];
+        }
+
+        function renderCard(card) {
+            return `<div class="card ${card.color}" data-color="${card.color}" data-number="${card.number}">${card.number}</div>`;
+        }
+
+        function startGame() {
+            playerName = playerNameInput.value || 'Player';
+            startScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            gameActive = true;
+
+            const deck = createDeck();
+            playerHand = [];
+            for (let i = 0; i < 5; i++) {
+                playerHand.push(drawCard(deck));
+            }
+            currentCard = drawCard(deck);
+            currentCardDiv.textContent = `${currentCard.number}`;
+            currentCardDiv.className = `card ${currentCard.color}`;
+            updatePlayerHand();
+            updateRoomPlayers();
+        }
+
+        function updatePlayerHand() {
+            playerHandDiv.innerHTML = '';
+            playerHand.forEach(card => {
+                playerHandDiv.innerHTML += renderCard(card);
+            });
+            addCardClickEvents();
+        }
+
+        function addCardClickEvents() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const color = card.dataset.color;
+                    const number = card.dataset.number;
+                    if (color === currentCard.color || number === currentCard.number) {
+                        currentCard = { color, number };
+                        currentCardDiv.textContent = `${currentCard.number}`;
+                        currentCardDiv.className = `card ${currentCard.color}`;
+                        playerHand = playerHand.filter(
+                            c => c.color !== color || c.number !== number
+                        );
+                        updatePlayerHand();
+                        if (playerHand.length === 0) {
+                            gameOver();
+                        } else {
+                            nextPlayerTurn();
+                        }
+                    } else {
+                        messageDiv.textContent = 'Invalid move! Try again.';
+                    }
+                });
+            });
+        }
+
+        function gameOver() {
+            gameActive = false;
+            alert(`${playerName} wins!`);
+            startScreen.style.display = 'block';
+            gameContainer.style.display = 'none';
+        }
+
+        function updateRoomPlayers() {
+            if (!currentRoomId) return;
+            const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
+            onValue(roomPlayersRef, (snapshot) => {
+                const data = snapshot.val();
+                currentRoomPlayers = data ? Object.values(data) : [];
+                displayPlayersInRoom();
+            });
+        }
+
+        function displayPlayersInRoom() {
             roomListDiv.innerHTML = '';
             currentRoomPlayers.forEach(player => {
                 const playerDiv = document.createElement('div');
-                playerDiv.classList.add('room-item');
+                playerDiv.className = 'room-item';
                 playerDiv.textContent = player.name;
                 roomListDiv.appendChild(playerDiv);
             });
+            if (currentRoomPlayers.length >= numPlayers && !playerReady) {
+                readyButton.style.display = 'inline-block';
+            }
         }
 
+        function joinRoom(roomId) {
+            currentRoomId = roomId;
+            const roomRef = ref(db, `rooms/${roomId}`);
+            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
+            set(playerRef, { name: playerName }).then(() => {
+                updateRoomPlayers();
+            });
+        }
+
+        function createRoom() {
+            const roomId = push(ref(db, 'rooms')).key;
+            set(ref(db, `rooms/${roomId}`), {
+                players: {},
+                settings: {
+                    numPlayers: numPlayers,
+                    turnTime: turnTime
+                }
+            });
+            currentRoomId = roomId;
+            roomCreatedMessage.style.display = 'block';
+            roomCreatedMessage.textContent = `Room created! Room ID: ${roomId}`;
+            joinRoom(roomId);
+        }
+
+        function sendChatMessage(message) {
+            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
+            push(chatRef, { player: playerName, message }).then(() => {
+                chatInput.value = '';
+            });
+        }
+
+        function updateChat() {
+            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
+            onValue(chatRef, (snapshot) => {
+                const data = snapshot.val();
+                chatContainer.innerHTML = '';
+                for (let key in data) {
+                    const chatMessage = data[key];
+                    chatContainer.innerHTML += `<p><strong>${chatMessage.player}: </strong>${chatMessage.message}</p>`;
+                }
+            });
+        }
+
+        createRoomButton.addEventListener('click', () => {
+            roomSettingsDiv.style.display = 'block';
+        });
+
+        saveRoomSettingsButton.addEventListener('click', () => {
+            numPlayers = parseInt(numPlayersInput.value);
+            turnTime = parseInt(turnTimeInput.value);
+            roomSettingsDiv.style.display = 'none';
+            createRoom();
+        });
+
         joinRoomButton.addEventListener('click', () => {
-            currentRoomId = roomIdInput.value;
-            if (currentRoomId) {
-                roomRef = ref(db, `rooms/${currentRoomId}`);
-                onValue(roomRef, (snapshot) => {
-                    const roomData = snapshot.val();
-                    if (roomData && roomData.players.length < numPlayers) {
-                        roomData.players.push({ name: playerName });
-                        update(roomRef, { players: roomData.players }).then(() => {
-                            setGameRoom();
-                        });
-                    } else {
-                        alert('Room is full or doesn\'t exist!');
-                    }
-                });
+            const roomId = roomIdInput.value;
+            if (roomId) {
+                joinRoom(roomId);
             }
         });
 
-        // Chat functionalities
+        startGameButton.addEventListener('click', startGame);
+
         chatSendButton.addEventListener('click', () => {
-            const message = chatInput.value.trim();
+            const message = chatInput.value;
             if (message) {
                 sendChatMessage(message);
             }
         });
 
-        function sendChatMessage(message) {
-            const chatMessage = {
-                player: playerName,
-                message
-            };
-            push(ref(db, `rooms/${currentRoomId}/chat`), chatMessage);
-            chatInput.value = '';
-        }
-
-        function updateChat() {
-            if (currentRoomId) {
-                const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
-                onValue(chatRef, (snapshot) => {
-                    chatContainer.innerHTML = '';
-                    snapshot.forEach(childSnapshot => {
-                        const chatMessage = childSnapshot.val();
-                        const messageDiv = document.createElement('div');
-                        messageDiv.textContent = `${chatMessage.player}: ${chatMessage.message}`;
-                        chatContainer.appendChild(messageDiv);
-                    });
-                });
-            }
-        }
-
-        updateChat();
-
-        // Draw cards functionality
-        drawCardButton.addEventListener('click', () => {
-            if (cardsInHand.length === 0) {
-                alert('You have no cards!');
-            } else {
-                const card = cardsInHand.pop();
-                currentCardDiv.textContent = `Current Card: ${card.color} ${card.value}`;
-                renderPlayerHand();
-            }
-        });
-
-        function startGame() {
-            cardsInHand = [...allCards]; // Reshuffle cards for each game
-            shuffleArray(cardsInHand);
-            renderPlayerHand();
-        }
-
-        function renderPlayerHand() {
-            playerHandDiv.innerHTML = '';
-            cardsInHand.forEach(card => {
-                const cardDiv = document.createElement('div');
-                cardDiv.classList.add('card', card.color);
-                cardDiv.textContent = card.value;
-                playerHandDiv.appendChild(cardDiv);
-            });
-        }
-
-        // Utility function to shuffle the cards
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
-        // Initial chat update
         updateChat();
     </script>
 </body>
