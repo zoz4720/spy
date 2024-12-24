@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,44 +6,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Clash - Game</title>
     <style>
-        /* General styles */
+        /* General Styles */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
             color: #333;
         }
 
         h1, h2, h3 {
             color: #333;
-            text-align: center;
+            font-weight: 600;
         }
 
         #start-screen, #game-container {
-            width: 80%;
-            max-width: 600px;
+            width: 90%;
+            max-width: 800px;
             text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin: 20px;
         }
 
         /* Room and settings container */
         #room-settings {
             margin-top: 20px;
-            background-color: #fff;
             padding: 20px;
-            border-radius: 10px;
+            background-color: #ffffff;
+            border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .setting-item {
-            margin: 10px 0;
+            margin: 15px 0;
         }
 
         .setting-item input {
-            width: 80px;
+            width: 70px;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+
+        .setting-item label {
+            font-size: 14px;
+            color: #555;
         }
 
         #room-list {
@@ -50,90 +67,111 @@
         }
 
         .room-item {
-            background-color: #fff;
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #eef2f7;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            font-size: 16px;
         }
 
-        #chat-container {
-            max-height: 200px;
-            overflow-y: scroll;
-            margin-top: 20px;
-            background-color: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
+        /* Card Styles */
         .card {
             display: inline-block;
-            padding: 15px;
-            margin: 10px;
+            width: 80px;
+            height: 120px;
             background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            text-align: center;
+            line-height: 120px;
             cursor: pointer;
         }
 
-        .card.red { background-color: red; color: white; }
-        .card.blue { background-color: blue; color: white; }
-        .card.green { background-color: green; color: white; }
-        .card.yellow { background-color: yellow; color: black; }
+        .card.red { background-color: #ff3b3b; color: white; }
+        .card.blue { background-color: #3b82f6; color: white; }
+        .card.green { background-color: #4caf50; color: white; }
+        .card.yellow { background-color: #fcd34d; color: black; }
 
-        #current-card {
-            font-size: 30px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: inline-block;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        #message {
-            margin-top: 10px;
-            color: red;
-        }
-
+        /* Ready Button */
         #ready-button {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
+            font-size: 18px;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         #ready-button:hover {
             background-color: #45a049;
         }
 
-        #chat-input {
+        /* Chat Styles */
+        #chat-container {
+            max-height: 200px;
+            overflow-y: scroll;
+            margin-top: 20px;
+            background-color: #f9f9f9;
             padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+
+        #chat-input {
+            padding: 12px;
             width: 80%;
-            margin: 10px 0;
             border-radius: 5px;
+            margin-top: 15px;
             border: 1px solid #ddd;
+            font-size: 14px;
         }
 
         #chat-send {
-            background-color: #008CBA;
+            background-color: #007bff;
             color: white;
-            padding: 10px;
+            padding: 12px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
             border: none;
+            margin-left: 10px;
         }
 
         #chat-send:hover {
-            background-color: #007bb5;
+            background-color: #0056b3;
         }
 
-        .room-item {
-            cursor: pointer;
+        /* Game Section */
+        #current-card {
+            font-size: 32px;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        #message {
+            margin-top: 10px;
+            color: #e74c3c;
+        }
+
+        /* Miscellaneous */
+        .hidden {
+            display: none;
+        }
+
+        .room-item:hover {
+            background-color: #cbd5e1;
         }
     </style>
 </head>
@@ -153,7 +191,7 @@
         </div>
         <button id="create-room">Create Room</button>
 
-        <div id="room-settings" style="display: none;">
+        <div id="room-settings" class="hidden">
             <h3>Room Settings</h3>
             <div class="setting-item">
                 <label for="num-players">Number of Players:</label>
@@ -165,17 +203,15 @@
             </div>
             <button id="save-room-settings">Save Settings</button>
         </div>
-
-        <p id="room-created-message" style="color: green; display: none;"></p>
     </div>
 
-    <div id="game-container" style="display: none;">
+    <div id="game-container" class="hidden">
         <h2>Game Room</h2>
-        <div id="current-card"></div>
+        <div id="current-card">Current Card: </div>
         <div id="player-hand"></div>
         <button id="draw-card">Draw Card</button>
         <p id="message"></p>
-        <button id="ready-button" style="display: none;">Ready!</button>
+        <button id="ready-button" class="hidden">Ready!</button>
 
         <div id="chat-container"></div>
         <input type="text" id="chat-input" placeholder="Type your message...">
@@ -183,25 +219,24 @@
     </div>
 
     <script type="module">
+        // Firebase Setup
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-  authDomain: "who-is-the-spy-51308.firebaseapp.com",
-  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "who-is-the-spy-51308",
-  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-  messagingSenderId: "900253646275",
-  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH"
-};
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Elements
+        // UI Elements
         const startScreen = document.getElementById('start-screen');
         const gameContainer = document.getElementById('game-container');
         const playerNameInput = document.getElementById('player-name');
@@ -233,8 +268,8 @@ const firebaseConfig = {
         let roomRef = null;
         let currentPlayerIndex = 0;
         let playerReady = false;
-        let turnTime = 30;  // Default turn time
-        let numPlayers = 3; // Default number of players
+        let turnTime = 30;
+        let numPlayers = 3;
 
         const colors = ['red', 'blue', 'green', 'yellow'];
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -270,151 +305,118 @@ const firebaseConfig = {
                 playerHand.push(drawCard(deck));
             }
             currentCard = drawCard(deck);
-            currentCardDiv.textContent = `${currentCard.number}`;
+            currentCardDiv.textContent = `Current Card: ${currentCard.number}`;
             currentCardDiv.className = `card ${currentCard.color}`;
             updatePlayerHand();
-            updateRoomPlayers();
+            setGameRoom();
         }
+
+        function setGameRoom() {
+            if (currentRoomId) {
+                roomRef = ref(db, `rooms/${currentRoomId}`);
+                onValue(roomRef, (snapshot) => {
+                    const roomData = snapshot.val();
+                    if (roomData) {
+                        currentRoomPlayers = roomData.players || [];
+                        numPlayers = roomData.numPlayers || 3;
+                        turnTime = roomData.turnTime || 30;
+                        renderRoomPlayers();
+                    }
+                });
+            }
+        }
+
+        function renderRoomPlayers() {
+            roomListDiv.innerHTML = '';
+            currentRoomPlayers.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.classList.add('room-item');
+                playerDiv.textContent = player.name;
+                roomListDiv.appendChild(playerDiv);
+            });
+        }
+
+        startGameButton.addEventListener('click', startGame);
+
+        createRoomButton.addEventListener('click', () => {
+            const roomId = push(ref(db, 'rooms')).key;
+            set(ref(db, `rooms/${roomId}`), {
+                numPlayers,
+                turnTime,
+                players: [{ name: playerName }]
+            }).then(() => {
+                currentRoomId = roomId;
+                roomSettingsDiv.classList.add('hidden');
+                startGame();
+            });
+        });
+
+        joinRoomButton.addEventListener('click', () => {
+            currentRoomId = roomIdInput.value;
+            if (currentRoomId) {
+                roomRef = ref(db, `rooms/${currentRoomId}`);
+                onValue(roomRef, (snapshot) => {
+                    const roomData = snapshot.val();
+                    if (roomData && roomData.players.length < numPlayers) {
+                        roomData.players.push({ name: playerName });
+                        update(roomRef, { players: roomData.players }).then(() => {
+                            startGame();
+                        });
+                    } else {
+                        alert('Room is full or doesn\'t exist!');
+                    }
+                });
+            }
+        });
+
+        saveRoomSettingsButton.addEventListener('click', () => {
+            const numPlayers = numPlayersInput.value;
+            const turnTime = turnTimeInput.value;
+            set(ref(db, `rooms/${currentRoomId}`), {
+                numPlayers,
+                turnTime
+            }).then(() => {
+                alert('Room settings saved!');
+            });
+        });
 
         function updatePlayerHand() {
             playerHandDiv.innerHTML = '';
             playerHand.forEach(card => {
                 playerHandDiv.innerHTML += renderCard(card);
             });
-            addCardClickEvents();
         }
-
-        function addCardClickEvents() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('click', () => {
-                    const color = card.dataset.color;
-                    const number = card.dataset.number;
-                    if (color === currentCard.color || number === currentCard.number) {
-                        currentCard = { color, number };
-                        currentCardDiv.textContent = `${currentCard.number}`;
-                        currentCardDiv.className = `card ${currentCard.color}`;
-                        playerHand = playerHand.filter(
-                            c => c.color !== color || c.number !== number
-                        );
-                        updatePlayerHand();
-                        if (playerHand.length === 0) {
-                            gameOver();
-                        } else {
-                            nextPlayerTurn();
-                        }
-                    } else {
-                        messageDiv.textContent = 'Invalid move! Try again.';
-                    }
-                });
-            });
-        }
-
-        function gameOver() {
-            gameActive = false;
-            alert(`${playerName} wins!`);
-            startScreen.style.display = 'block';
-            gameContainer.style.display = 'none';
-        }
-
-        function updateRoomPlayers() {
-            if (!currentRoomId) return;
-            const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
-            onValue(roomPlayersRef, (snapshot) => {
-                const data = snapshot.val();
-                currentRoomPlayers = data ? Object.values(data) : [];
-                displayPlayersInRoom();
-            });
-        }
-
-        function displayPlayersInRoom() {
-            roomListDiv.innerHTML = '';
-            currentRoomPlayers.forEach(player => {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'room-item';
-                playerDiv.textContent = player.name;
-                roomListDiv.appendChild(playerDiv);
-            });
-            if (currentRoomPlayers.length >= numPlayers && !playerReady) {
-                readyButton.style.display = 'inline-block';
-            }
-        }
-
-        function joinRoom(roomId) {
-            currentRoomId = roomId;
-            const roomRef = ref(db, `rooms/${roomId}`);
-            const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-            set(playerRef, { name: playerName }).then(() => {
-                updateRoomPlayers();
-            });
-        }
-
-        function createRoom() {
-            const roomId = push(ref(db, 'rooms')).key;
-            set(ref(db, `rooms/${roomId}`), {
-                players: {},
-                settings: {
-                    numPlayers: numPlayers,
-                    turnTime: turnTime
-                }
-            });
-            currentRoomId = roomId;
-            roomCreatedMessage.style.display = 'block';
-            roomCreatedMessage.textContent = `Room created! Room ID: ${roomId}`;
-            joinRoom(roomId);
-        }
-
-        function sendChatMessage(message) {
-            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
-            push(chatRef, { player: playerName, message }).then(() => {
-                chatInput.value = '';
-            });
-        }
-
-        function updateChat() {
-            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
-            onValue(chatRef, (snapshot) => {
-                const data = snapshot.val();
-                chatContainer.innerHTML = '';
-                for (let key in data) {
-                    const chatMessage = data[key];
-                    chatContainer.innerHTML += `<p><strong>${chatMessage.player}: </strong>${chatMessage.message}</p>`;
-                }
-            });
-        }
-
-        createRoomButton.addEventListener('click', () => {
-            roomSettingsDiv.style.display = 'block';
-        });
-
-        saveRoomSettingsButton.addEventListener('click', () => {
-            numPlayers = parseInt(numPlayersInput.value);
-            turnTime = parseInt(turnTimeInput.value);
-            roomSettingsDiv.style.display = 'none';
-            createRoom();
-        });
-
-        joinRoomButton.addEventListener('click', () => {
-            const roomId = roomIdInput.value;
-            if (roomId) {
-                joinRoom(roomId);
-            }
-        });
-
-        startGameButton.addEventListener('click', startGame);
-
-        readyButton.addEventListener('click', () => {
-            playerReady = true;
-            readyButton.style.display = 'none';
-            messageDiv.textContent = 'Waiting for other players...';
-        });
 
         chatSendButton.addEventListener('click', () => {
             const message = chatInput.value;
-            if (message) {
+            if (message.trim() !== '') {
                 sendChatMessage(message);
             }
         });
+
+        function sendChatMessage(message) {
+            const chatMessage = {
+                player: playerName,
+                message
+            };
+            push(ref(db, `rooms/${currentRoomId}/chat`), chatMessage);
+            chatInput.value = '';
+        }
+
+        function updateChat() {
+            if (currentRoomId) {
+                const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
+                onValue(chatRef, (snapshot) => {
+                    chatContainer.innerHTML = '';
+                    snapshot.forEach(childSnapshot => {
+                        const chatMessage = childSnapshot.val();
+                        const messageDiv = document.createElement('div');
+                        messageDiv.textContent = `${chatMessage.player}: ${chatMessage.message}`;
+                        chatContainer.appendChild(messageDiv);
+                    });
+                });
+            }
+        }
 
         updateChat();
     </script>
