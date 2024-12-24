@@ -1,182 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Clash - Game</title>
+    <title>منصة تعليمية متكاملة</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: #fff;
-        }
-        #start-screen {
-            display: block;
-            margin-top: 20px;
-        }
-        #game-container {
-            display: none;
-            margin: 20px auto;
-            padding: 20px;
-            background: #444;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 600px;
-        }
-        .card {
-            display: inline-block;
-            margin: 10px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 20px;
-            color: #fff;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: scale(1.1);
-        }
-        .red { background: #e74c3c; }
-        .blue { background: #3498db; }
-        .green { background: #2ecc71; }
-        .yellow { background: #f1c40f; color: #222; }
-        #current-card {
-            margin: 20px auto;
-            padding: 20px;
-            font-size: 24px;
-            color: #fff;
-            border-radius: 10px;
-            width: 150px;
-            height: 200px;
-            line-height: 160px;
-            text-align: center;
-        }
-        #message {
-            margin: 10px 0;
-            font-size: 18px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            background: #3498db;
-            color: #fff;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #2980b9;
-        }
-        .room-list, .room-item {
-            padding: 10px;
-            margin: 5px;
-            background-color: #333;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #room-code {
-            margin-top: 10px;
-        }
-        #chat-container {
-            margin-top: 20px;
-            width: 100%;
-            height: 150px;
-            background-color: #333;
-            padding: 10px;
-            border-radius: 10px;
-            overflow-y: scroll;
-        }
-        #chat-input {
-            width: 80%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        #chat-send {
-            padding: 10px 20px;
-            margin-top: 10px;
-            border-radius: 5px;
-            background-color: #2ecc71;
-            color: #fff;
-            cursor: pointer;
-        }
-        #ready-button {
-            padding: 10px 20px;
-            background-color: #f39c12;
-            color: #fff;
-            cursor: pointer;
-        }
-        #ready-button:hover {
-            background-color: #e67e22;
-        }
-
-        #room-settings {
-            margin-top: 20px;
-        }
-
-        .setting-item {
-            margin: 10px 0;
-        }
-
-        .setting-item input {
-            width: 80px;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        header { background-color: #333; color: white; padding: 20px 0; text-align: center; }
+        section { padding: 40px 20px; margin: 20px auto; max-width: 900px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        form { display: flex; flex-direction: column; align-items: center; }
+        input, textarea { width: 80%; max-width: 400px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background-color: #5cb85c; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background-color: #4cae4c; }
+        footer { text-align: center; padding: 10px 0; background-color: #333; color: white; margin-top: 20px; }
+        .question-item { background-color: #f8f8f8; margin: 10px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .chat-box { margin-top: 20px; background-color: #f0f0f0; padding: 15px; border-radius: 8px; }
+        .chat-message { background-color: #ddd; margin: 5px 0; padding: 10px; border-radius: 5px; }
+        .chat-form { display: flex; flex-direction: row; margin-top: 10px; }
+        .chat-form input { flex: 1; padding: 10px; border: 1px solid #ccc; }
+        .chat-form button { background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        .quiz-section { padding: 20px; background-color: #e8e8e8; border-radius: 8px; }
+        .quiz-question { margin: 10px 0; padding: 15px; background-color: #f1f1f1; border-radius: 8px; }
+        .quiz-option { padding: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; margin: 5px 0; }
+        .quiz-option:hover { background-color: #ddd; }
+        .lesson-card { padding: 15px; margin: 10px 0; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .lesson-card h3 { margin-bottom: 10px; }
+        .lesson-card p { margin-bottom: 15px; }
     </style>
 </head>
 <body>
-    <h1>Card Clash</h1>
+    <header>
+        <h1>منصة تعليمية متكاملة</h1>
+        <button onclick="window.location.href = '/login.html';">تسجيل الدخول</button>
+    </header>
 
-    <!-- Start Screen -->
-    <div id="start-screen">
-        <h2>Welcome to Card Clash</h2>
-        <p>Enter your name:</p>
-        <input type="text" id="player-name" placeholder="Your Name">
-        <button id="start-game">Start Game</button>
-        <h3>Join or Create a Room</h3>
-        <div id="room-list" class="room-list"></div>
-        <div id="room-code">
-            <p>Enter Room Code:</p>
-            <input type="text" id="room-id-input" placeholder="Room ID">
-            <button id="join-room">Join Room</button>
+    <section id="qa">
+        <h2>طرح الأسئلة والإجابات</h2>
+        <form id="askQuestionForm">
+            <textarea id="question" placeholder="اكتب سؤالك هنا..." required></textarea>
+            <button type="submit">طرح السؤال</button>
+        </form>
+        <div id="questionsList"></div>
+    </section>
+
+    <section id="chat">
+        <h2>الدردشة مع المعلمين</h2>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-form">
+            <input type="text" id="chatInput" placeholder="أرسل رسالة...">
+            <button id="sendChatMessage">إرسال</button>
         </div>
-        <button id="create-room">Create Room</button>
+    </section>
 
-        <!-- Room Settings -->
-        <div id="room-settings" style="display: none;">
-            <h3>Room Settings</h3>
-            <div class="setting-item">
-                <label for="num-players">Number of Players:</label>
-                <input type="number" id="num-players" min="3" max="6" value="3">
-            </div>
-            <div class="setting-item">
-                <label for="turn-time">Turn Time (seconds):</label>
-                <input type="number" id="turn-time" min="10" max="60" value="30">
-            </div>
-            <button id="save-room-settings">Save Settings</button>
+    <section id="lessonSection">
+        <h2>الدروس التعليمية</h2>
+        <div class="lesson-card">
+            <h3>درس: التاريخ</h3>
+            <p>محتوى الدرس: تعرف على تاريخ العالم القديم...</p>
+            <button onclick="openLesson('videoUrlHere')">شاهد الفيديو</button>
         </div>
+        <div class="lesson-card">
+            <h3>درس: الرياضيات</h3>
+            <p>محتوى الدرس: تعلم العمليات الحسابية الأساسية...</p>
+            <button onclick="openLesson('videoUrlHere')">شاهد الفيديو</button>
+        </div>
+    </section>
 
-        <p id="room-created-message" style="color: green; display: none;"></p>
-    </div>
+    <section id="quizSection" class="quiz-section">
+        <h2>اختبار تفاعلي</h2>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options">
+            <button class="quiz-option" onclick="checkAnswer(0)">الاختيار 1</button>
+            <button class="quiz-option" onclick="checkAnswer(1)">الاختيار 2</button>
+            <button class="quiz-option" onclick="checkAnswer(2)">الاختيار 3</button>
+            <button class="quiz-option" onclick="checkAnswer(3)">الاختيار 4</button>
+        </div>
+    </section>
 
-    <!-- Game Screen -->
-    <div id="game-container" style="display: none;">
-        <div id="current-card" class="card"></div>
-        <div id="player-hand"></div>
-        <button id="draw-card">Draw Card</button>
-        <p id="message"></p>
-        <button id="ready-button" style="display: none;">Ready!</button>
-        <div id="chat-container"></div>
-        <input type="text" id="chat-input" placeholder="Type your message...">
-        <button id="chat-send">Send</button>
-    </div>
+    <footer>
+        <p>&copy; 2024 منصة تعليمية متكاملة</p>
+    </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
-
-        // Firebase Config
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
             authDomain: "who-is-the-spy-51308.firebaseapp.com",
@@ -188,170 +96,120 @@
             measurementId: "G-NWXDDDRPRH"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Elements
-        const startScreen = document.getElementById('start-screen');
-        const gameContainer = document.getElementById('game-container');
-        const playerNameInput = document.getElementById('player-name');
-        const startGameButton = document.getElementById('start-game');
-        const currentCardDiv = document.getElementById('current-card');
-        const playerHandDiv = document.getElementById('player-hand');
-        const drawCardButton = document.getElementById('draw-card');
-        const messageDiv = document.getElementById('message');
-        const roomListDiv = document.getElementById('room-list');
-        const createRoomButton = document.getElementById('create-room');
-        const joinRoomButton = document.getElementById('join-room');
-        const roomIdInput = document.getElementById('room-id-input');
-        const roomCreatedMessage = document.getElementById('room-created-message');
-        const roomSettingsDiv = document.getElementById('room-settings');
-        const numPlayersInput = document.getElementById('num-players');
-        const turnTimeInput = document.getElementById('turn-time');
-        const saveRoomSettingsButton = document.getElementById('save-room-settings');
-        const readyButton = document.getElementById('ready-button');
-        const chatContainer = document.getElementById('chat-container');
-        const chatInput = document.getElementById('chat-input');
-        const chatSendButton = document.getElementById('chat-send');
-
-        let playerName = '';
-        let playerHand = [];
-        let currentCard = {};
-        let gameActive = false;
-        let roomId = '';
-        let playersInRoom = [];
-        let roomSettings = {
-            numPlayers: 3,
-            turnTime: 30
-        };
-
-        // Event Listeners
-        startGameButton.addEventListener('click', startGame);
-        createRoomButton.addEventListener('click', createRoom);
-        joinRoomButton.addEventListener('click', joinRoom);
-        saveRoomSettingsButton.addEventListener('click', saveRoomSettings);
-        drawCardButton.addEventListener('click', drawCard);
-        readyButton.addEventListener('click', playerReady);
-        chatSendButton.addEventListener('click', sendMessage);
-
-        // Functions
-        function startGame() {
-            playerName = playerNameInput.value;
-            if (playerName.trim() === '') {
-                alert('Please enter a valid name.');
-                return;
+        // إضافة وظيفة لطرح الأسئلة
+        document.getElementById('askQuestionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const questionText = document.getElementById('question').value;
+            const user = auth.currentUser;
+            if (user && questionText) {
+                const questionRef = db.collection('questions').add({
+                    question: questionText,
+                    userId: user.uid,
+                    timestamp: Date.now()
+                }).then(() => {
+                    document.getElementById('question').value = ''; 
+                });
             }
+        });
 
-            startScreen.style.display = 'none';
-            gameContainer.style.display = 'block';
-
-            // Initialize the game or room actions here
-        }
-
-        function createRoom() {
-            const roomCode = generateRoomCode();
-            const roomRef = ref(db, `rooms/${roomCode}`);
-            set(roomRef, {
-                numPlayers: numPlayersInput.value,
-                players: {
-                    [playerName]: { name: playerName }
-                }
-            }).then(() => {
-                roomId = roomCode;
-                roomCreatedMessage.textContent = `Room created! Your room code is ${roomId}`;
-                roomCreatedMessage.style.display = 'block';
-                updateRoomList();
-                roomSettingsDiv.style.display = 'block';
-            });
-        }
-
-        function joinRoom() {
-            roomId = roomIdInput.value;
-            const roomRef = ref(db, `rooms/${roomId}`);
-            onValue(roomRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    // Add player to the room
-                    const playersRef = ref(db, `rooms/${roomId}/players`);
-                    set(ref(db, `rooms/${roomId}/players/${playerName}`), { name: playerName }).then(() => {
-                        startGame();
-                    });
-                } else {
-                    alert('Room not found.');
-                }
-            });
-        }
-
-        function saveRoomSettings() {
-            roomSettings.numPlayers = numPlayersInput.value;
-            roomSettings.turnTime = turnTimeInput.value;
-            alert('Settings saved.');
-        }
-
-        function generateRoomCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
-
-        function updateRoomList() {
-            const roomsRef = ref(db, 'rooms');
-            onValue(roomsRef, (snapshot) => {
-                roomListDiv.innerHTML = '';
-                snapshot.forEach((roomSnapshot) => {
-                    const roomId = roomSnapshot.key;
-                    const roomDiv = document.createElement('div');
-                    roomDiv.textContent = `Room ${roomId}`;
-                    roomDiv.classList.add('room-item');
-                    roomDiv.addEventListener('click', () => {
-                        roomIdInput.value = roomId;
-                        joinRoom();
-                    });
-                    roomListDiv.appendChild(roomDiv);
+        function loadQuestions() {
+            const questionsRef = db.collection('questions');
+            questionsRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+                const questionsList = document.getElementById('questionsList');
+                questionsList.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const question = doc.data();
+                    const questionItem = document.createElement('div');
+                    questionItem.classList.add('question-item');
+                    questionItem.innerHTML = `<p><strong>سؤال:</strong> ${question.question}</p>`;
+                    questionsList.appendChild(questionItem);
                 });
             });
         }
 
-        function drawCard() {
-            const card = getRandomCard();
-            currentCard = card;
-            currentCardDiv.textContent = card.name;
-            playerHand.push(card);
-            renderPlayerHand();
-        }
+        loadQuestions();
 
-        function renderPlayerHand() {
-            playerHandDiv.innerHTML = '';
-            playerHand.forEach((card) => {
-                const cardDiv = document.createElement('div');
-                cardDiv.classList.add('card', card.color);
-                cardDiv.textContent = card.name;
-                playerHandDiv.appendChild(cardDiv);
+        // إضافة وظيفة للدردشة مع المعلمين
+        document.getElementById('sendChatMessage').addEventListener('click', () => {
+            const message = document.getElementById('chatInput').value;
+            const user = auth.currentUser;
+            if (user && message) {
+                const chatRef = db.collection('chats').add({
+                    message: message,
+                    userId: user.uid,
+                    timestamp: Date.now()
+                }).then(() => {
+                    document.getElementById('chatInput').value = ''; 
+                });
+            }
+        });
+
+        function loadChat() {
+            const chatRef = db.collection('chats');
+            chatRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+                const chatBox = document.getElementById('chatBox');
+                chatBox.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const chatMessage = doc.data();
+                    const chatItem = document.createElement('div');
+                    chatItem.classList.add('chat-message');
+                    chatItem.innerHTML = `<p><strong>رسالة:</strong> ${chatMessage.message}</p>`;
+                    chatBox.appendChild(chatItem);
+                });
             });
         }
 
-        function getRandomCard() {
-            const cards = [
-                { name: 'Ace', color: 'red' },
-                { name: 'King', color: 'blue' },
-                { name: 'Queen', color: 'green' },
-                { name: 'Jack', color: 'yellow' }
-            ];
-            return cards[Math.floor(Math.random() * cards.length)];
+        loadChat();
+
+        function openLesson(url) {
+            window.open(url, '_blank');
         }
 
-        function sendMessage() {
-            const message = chatInput.value;
-            if (message.trim() !== '') {
-                const chatRef = ref(db, `rooms/${roomId}/chat`);
-                push(chatRef, {
-                    player: playerName,
-                    message: message
-                });
-                chatInput.value = '';
+        // إعداد اختبار
+        const quizQuestions = [
+            {
+                question: "ما هو جمع 2 + 2؟",
+                options: ["3", "4", "5", "6"],
+                answer: 1
+            },
+            {
+                question: "ما هو عاصمة مصر؟",
+                options: ["الإسكندرية", "القاهرة", "أسوان", "الأقصر"],
+                answer: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+
+        function loadQuiz() {
+            const question = quizQuestions[currentQuestionIndex];
+            document.getElementById('quizQuestion').innerText = question.question;
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach((option, index) => {
+                option.innerText = question.options[index];
+            });
+        }
+
+        function checkAnswer(selectedOption) {
+            const question = quizQuestions[currentQuestionIndex];
+            if (selectedOption === question.answer) {
+                alert("إجابة صحيحة!");
+            } else {
+                alert("إجابة خاطئة!");
+            }
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                loadQuiz();
+            } else {
+                alert("انتهى الاختبار!");
             }
         }
 
-        function playerReady() {
-            alert('You are ready! Start playing the game.');
-        }
+        loadQuiz();
     </script>
 </body>
 </html>
