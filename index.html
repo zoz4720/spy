@@ -177,16 +177,16 @@
         import { getDatabase, ref, set, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
         // Firebase Config
-       const firebaseConfig = {
-  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-  authDomain: "who-is-the-spy-51308.firebaseapp.com",
-  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "who-is-the-spy-51308",
-  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-  messagingSenderId: "900253646275",
-  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
+            authDomain: "who-is-the-spy-51308.firebaseapp.com",
+            databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "who-is-the-spy-51308",
+            storageBucket: "who-is-the-spy-51308.firebasestorage.app",
+            messagingSenderId: "900253646275",
+            appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
+            measurementId: "G-NWXDDDRPRH"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -218,226 +218,140 @@
         let playerHand = [];
         let currentCard = {};
         let gameActive = false;
-        let currentRoomId = null;
-        let currentRoomPlayers = [];
-        let roomRef = null;
-        let currentPlayerIndex = 0;
-        let playerReady = false;
-        let turnTime = 30;  // Default turn time
-        let numPlayers = 3; // Default number of players
+        let roomId = '';
+        let playersInRoom = [];
+        let roomSettings = {
+            numPlayers: 3,
+            turnTime: 30
+        };
 
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        // Event Listeners
+        startGameButton.addEventListener('click', startGame);
+        createRoomButton.addEventListener('click', createRoom);
+        joinRoomButton.addEventListener('click', joinRoom);
+        saveRoomSettingsButton.addEventListener('click', saveRoomSettings);
+        drawCardButton.addEventListener('click', drawCard);
+        readyButton.addEventListener('click', playerReady);
+        chatSendButton.addEventListener('click', sendMessage);
 
-        function createDeck() {
-            const deck = [];
-            colors.forEach(color => {
-                numbers.forEach(number => {
-                    deck.push({ color, number });
-                });
-            });
-            return deck;
-        }
-
-        function drawCard(deck) {
-            const randomIndex = Math.floor(Math.random() * deck.length);
-            return deck.splice(randomIndex, 1)[0];
-        }
-
-        function renderCard(card) {
-            return `<div class="card ${card.color}" data-color="${card.color}" data-number="${card.number}">${card.number}</div>`;
-        }
-
+        // Functions
         function startGame() {
-            playerName = playerNameInput.value || 'Player';
+            playerName = playerNameInput.value;
+            if (playerName.trim() === '') {
+                alert('Please enter a valid name.');
+                return;
+            }
+
             startScreen.style.display = 'none';
             gameContainer.style.display = 'block';
-            gameActive = true;
 
-            const deck = createDeck();
-            playerHand = [];
-            for (let i = 0; i < 5; i++) {
-                playerHand.push(drawCard(deck));
-            }
-            currentCard = drawCard(deck);
-            currentCardDiv.textContent = `${currentCard.number}`;
-            currentCardDiv.className = `card ${currentCard.color}`;
-            updatePlayerHand();
-            updateRoomPlayers();
+            // Initialize the game or room actions here
         }
 
-        function updatePlayerHand() {
-            playerHandDiv.innerHTML = '';
-            playerHand.forEach(card => {
-                playerHandDiv.innerHTML += renderCard(card);
+        function createRoom() {
+            const roomCode = generateRoomCode();
+            const roomRef = ref(db, `rooms/${roomCode}`);
+            set(roomRef, {
+                numPlayers: numPlayersInput.value,
+                players: {
+                    [playerName]: { name: playerName }
+                }
+            }).then(() => {
+                roomId = roomCode;
+                roomCreatedMessage.textContent = `Room created! Your room code is ${roomId}`;
+                roomCreatedMessage.style.display = 'block';
+                updateRoomList();
+                roomSettingsDiv.style.display = 'block';
             });
-            addCardClickEvents();
         }
 
-        function addCardClickEvents() {
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('click', () => {
-                    const color = card.dataset.color;
-                    const number = card.dataset.number;
-                    if (color === currentCard.color || number === currentCard.number) {
-                        currentCard = { color, number };
-                        currentCardDiv.textContent = `${currentCard.number}`;
-                        currentCardDiv.className = `card ${currentCard.color}`;
-                        playerHand = playerHand.filter(
-                            c => c.color !== color || c.number !== number
-                        );
-                        updatePlayerHand();
-                        if (playerHand.length === 0) {
-                            gameOver();
-                        } else {
-                            nextPlayerTurn();
-                        }
-                    } else {
-                        messageDiv.textContent = 'Invalid move! Try again.';
-                    }
+        function joinRoom() {
+            roomId = roomIdInput.value;
+            const roomRef = ref(db, `rooms/${roomId}`);
+            onValue(roomRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    // Add player to the room
+                    const playersRef = ref(db, `rooms/${roomId}/players`);
+                    set(ref(db, `rooms/${roomId}/players/${playerName}`), { name: playerName }).then(() => {
+                        startGame();
+                    });
+                } else {
+                    alert('Room not found.');
+                }
+            });
+        }
+
+        function saveRoomSettings() {
+            roomSettings.numPlayers = numPlayersInput.value;
+            roomSettings.turnTime = turnTimeInput.value;
+            alert('Settings saved.');
+        }
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function updateRoomList() {
+            const roomsRef = ref(db, 'rooms');
+            onValue(roomsRef, (snapshot) => {
+                roomListDiv.innerHTML = '';
+                snapshot.forEach((roomSnapshot) => {
+                    const roomId = roomSnapshot.key;
+                    const roomDiv = document.createElement('div');
+                    roomDiv.textContent = `Room ${roomId}`;
+                    roomDiv.classList.add('room-item');
+                    roomDiv.addEventListener('click', () => {
+                        roomIdInput.value = roomId;
+                        joinRoom();
+                    });
+                    roomListDiv.appendChild(roomDiv);
                 });
             });
         }
 
-        function gameOver() {
-            gameActive = false;
-            alert(`${playerName} wins!`);
-            startScreen.style.display = 'block';
-            gameContainer.style.display = 'none';
+        function drawCard() {
+            const card = getRandomCard();
+            currentCard = card;
+            currentCardDiv.textContent = card.name;
+            playerHand.push(card);
+            renderPlayerHand();
         }
 
-        function updateRoomPlayers() {
-            if (!currentRoomId) return;
-            const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
-            onValue(roomPlayersRef, (snapshot) => {
-                const data = snapshot.val();
-                currentRoomPlayers = data ? Object.values(data) : [];
-                displayPlayersInRoom();
+        function renderPlayerHand() {
+            playerHandDiv.innerHTML = '';
+            playerHand.forEach((card) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('card', card.color);
+                cardDiv.textContent = card.name;
+                playerHandDiv.appendChild(cardDiv);
             });
         }
 
-        function displayPlayersInRoom() {
-            roomListDiv.innerHTML = '';
-            currentRoomPlayers.forEach(player => {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'room-item';
-                playerDiv.textContent = player.name;
-                roomListDiv.appendChild(playerDiv);
-            });
-            if (currentRoomPlayers.length >= numPlayers && !playerReady) {
-                readyButton.style.display = 'inline-block';
-            }
+        function getRandomCard() {
+            const cards = [
+                { name: 'Ace', color: 'red' },
+                { name: 'King', color: 'blue' },
+                { name: 'Queen', color: 'green' },
+                { name: 'Jack', color: 'yellow' }
+            ];
+            return cards[Math.floor(Math.random() * cards.length)];
         }
 
-        function joinRoom(roomId) {
-    currentRoomId = roomId;
-    const roomRef = ref(db, `rooms/${roomId}`);
-    const playerRef = ref(db, `rooms/${roomId}/players/${playerName}`);
-
-    // التأكد من وجود الغرفة
-    onValue(roomRef, (snapshot) => {
-        if (!snapshot.exists()) {
-            messageDiv.textContent = 'Room does not exist!';
-            return;
-        }
-
-        // إضافة اللاعب إلى الغرفة
-        set(playerRef, { name: playerName }).then(() => {
-            updateRoomPlayers();
-        }).catch((error) => {
-            messageDiv.textContent = 'Failed to join room. Please try again.';
-            console.error(error);
-        });
-    });
-}
-
-function updateRoomPlayers() {
-    if (!currentRoomId) return;
-    const roomPlayersRef = ref(db, `rooms/${currentRoomId}/players`);
-    onValue(roomPlayersRef, (snapshot) => {
-        const data = snapshot.val();
-        currentRoomPlayers = data ? Object.values(data) : [];
-        displayPlayersInRoom();
-    });
-}
-
-function displayPlayersInRoom() {
-    roomListDiv.innerHTML = '';
-    currentRoomPlayers.forEach(player => {
-        const playerDiv = document.createElement('div');
-        playerDiv.className = 'room-item';
-        playerDiv.textContent = player.name;
-        roomListDiv.appendChild(playerDiv);
-    });
-
-    if (currentRoomPlayers.length >= numPlayers && !playerReady) {
-        readyButton.style.display = 'inline-block';
-    }
-}
-
-        function createRoom() {
-            const roomId = push(ref(db, 'rooms')).key;
-            set(ref(db, `rooms/${roomId}`), {
-                players: {},
-                settings: {
-                    numPlayers: numPlayers,
-                    turnTime: turnTime
-                }
-            });
-            currentRoomId = roomId;
-            roomCreatedMessage.style.display = 'block';
-            roomCreatedMessage.textContent = `Room created! Room ID: ${roomId}`;
-            joinRoom(roomId);
-        }
-
-        function sendChatMessage(message) {
-            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
-            push(chatRef, { player: playerName, message }).then(() => {
-                chatInput.value = '';
-            });
-        }
-
-        function updateChat() {
-            const chatRef = ref(db, `rooms/${currentRoomId}/chat`);
-            onValue(chatRef, (snapshot) => {
-                const data = snapshot.val();
-                chatContainer.innerHTML = '';
-                for (let key in data) {
-                    const chatMessage = data[key];
-                    chatContainer.innerHTML += `<p><strong>${chatMessage.player}: </strong>${chatMessage.message}</p>`;
-                }
-            });
-        }
-
-        createRoomButton.addEventListener('click', () => {
-            roomSettingsDiv.style.display = 'block';
-        });
-
-        saveRoomSettingsButton.addEventListener('click', () => {
-            numPlayers = parseInt(numPlayersInput.value);
-            turnTime = parseInt(turnTimeInput.value);
-            roomSettingsDiv.style.display = 'none';
-            createRoom();
-        });
-
-        joinRoomButton.addEventListener('click', () => {
-            const roomId = roomIdInput.value;
-            if (roomId) {
-                joinRoom(roomId);
-            }
-        });
-
-        startGameButton.addEventListener('click', startGame);
-
-        chatSendButton.addEventListener('click', () => {
+        function sendMessage() {
             const message = chatInput.value;
-            if (message) {
-                sendChatMessage(message);
+            if (message.trim() !== '') {
+                const chatRef = ref(db, `rooms/${roomId}/chat`);
+                push(chatRef, {
+                    player: playerName,
+                    message: message
+                });
+                chatInput.value = '';
             }
-        });
+        }
 
-        updateChat();
+        function playerReady() {
+            alert('You are ready! Start playing the game.');
+        }
     </script>
 </body>
 </html>
