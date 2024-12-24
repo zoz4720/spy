@@ -306,16 +306,38 @@
         let numPlayers = 3;
         let turnTime = 30;
         let roomRef = null;
+        let cardsInHand = [];
 
+        const allCards = [
+            { color: 'red', value: '1' },
+            { color: 'blue', value: '2' },
+            { color: 'green', value: '3' },
+            { color: 'yellow', value: '4' },
+            { color: 'red', value: '5' },
+            { color: 'blue', value: '6' },
+            { color: 'green', value: '7' },
+            { color: 'yellow', value: '8' },
+            { color: 'red', value: '9' },
+            { color: 'blue', value: '10' },
+            { color: 'green', value: 'skip' },
+            { color: 'yellow', value: 'reverse' },
+            { color: 'red', value: 'reverse' },
+            { color: 'blue', value: 'skip' }
+        ];
+
+        // Start Game
         startGameButton.addEventListener('click', () => {
             playerName = playerNameInput.value.trim();
-            if (playerName) {
+            if (playerName.length > 0) {
                 startScreen.classList.add('hidden');
                 gameContainer.classList.remove('hidden');
-                initializeGame();
+                setUpRoom();
+            } else {
+                alert("Please enter your name!");
             }
         });
 
+        // Set up room settings
         createRoomButton.addEventListener('click', () => {
             roomSettingsDiv.classList.remove('hidden');
         });
@@ -323,33 +345,30 @@
         saveRoomSettingsButton.addEventListener('click', () => {
             numPlayers = document.getElementById('num-players').value;
             turnTime = document.getElementById('turn-time').value;
-            const roomId = push(ref(db, 'rooms')).key;
-            set(ref(db, `rooms/${roomId}`), {
-                numPlayers,
-                turnTime,
-                players: [{ name: playerName }]
+            roomRef = push(ref(db, 'rooms'));
+            set(roomRef, {
+                players: [{ name: playerName }],
+                turnTime: turnTime,
+                numPlayers: numPlayers
             }).then(() => {
-                currentRoomId = roomId;
-                roomSettingsDiv.classList.add('hidden');
-                roomCodeDisplay.textContent = `Your Room Code: ${roomId}`;
+                currentRoomId = roomRef.key;
+                roomCodeDisplay.textContent = `Room Code: ${currentRoomId}`;
                 roomCodeDisplay.classList.remove('hidden');
                 setGameRoom();
             });
         });
 
+        // Create or join room
         function setGameRoom() {
-            if (currentRoomId) {
-                roomRef = ref(db, `rooms/${currentRoomId}`);
-                onValue(roomRef, (snapshot) => {
-                    const roomData = snapshot.val();
-                    if (roomData) {
-                        currentRoomPlayers = roomData.players || [];
-                        numPlayers = roomData.numPlayers || 3;
-                        turnTime = roomData.turnTime || 30;
-                        renderRoomPlayers();
-                    }
-                });
-            }
+            roomRef = ref(db, `rooms/${currentRoomId}`);
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                if (roomData) {
+                    currentRoomPlayers = roomData.players;
+                    renderRoomPlayers();
+                }
+            });
+            joinRoomButton.disabled = true;
         }
 
         function renderRoomPlayers() {
