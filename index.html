@@ -144,25 +144,25 @@
         <div id="game-over"></div>
     </div>
 
-   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-        authDomain: "who-is-the-spy-51308.firebaseapp.com",
-        databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "who-is-the-spy-51308",
-        storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-        messagingSenderId: "900253646275",
-        appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-        measurementId: "G-NWXDDDRPRH"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+ <script>
+   const firebaseConfig = {
+            apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
+            authDomain: "who-is-the-spy-51308.firebaseapp.com",
+            databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "who-is-the-spy-51308",
+            storageBucket: "who-is-the-spy-51308.firebasestorage.app",
+            messagingSenderId: "900253646275",
+            appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
+            measurementId: "G-NWXDDDRPRH"
+        };
+        
+        // تهيئة Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
         // واجهة المستخدم
         const loginBtn = document.getElementById("loginBtn");
         const logoutBtn = document.getElementById("logoutBtn");
