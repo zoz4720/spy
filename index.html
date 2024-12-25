@@ -3,88 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة تعليمية متكاملة</title>
+    <title>لعبة UNO أونلاين</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-        header { background-color: #333; color: white; padding: 20px 0; text-align: center; }
-        section { padding: 40px 20px; margin: 20px auto; max-width: 900px; background-color: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        form { display: flex; flex-direction: column; align-items: center; }
-        input, textarea { width: 80%; max-width: 400px; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background-color: #5cb85c; color: white; padding: 10px 20px; border: none; cursor: pointer; }
-        button:hover { background-color: #4cae4c; }
-        footer { text-align: center; padding: 10px 0; background-color: #333; color: white; margin-top: 20px; }
-        .question-item { background-color: #f8f8f8; margin: 10px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .chat-box { margin-top: 20px; background-color: #f0f0f0; padding: 15px; border-radius: 8px; }
-        .chat-message { background-color: #ddd; margin: 5px 0; padding: 10px; border-radius: 5px; }
-        .chat-form { display: flex; flex-direction: row; margin-top: 10px; }
-        .chat-form input { flex: 1; padding: 10px; border: 1px solid #ccc; }
-        .chat-form button { background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; }
-        .quiz-section { padding: 20px; background-color: #e8e8e8; border-radius: 8px; }
-        .quiz-question { margin: 10px 0; padding: 15px; background-color: #f1f1f1; border-radius: 8px; }
-        .quiz-option { padding: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; margin: 5px 0; }
-        .quiz-option:hover { background-color: #ddd; }
-        .lesson-card { padding: 15px; margin: 10px 0; background-color: #f9f9f9; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .lesson-card h3 { margin-bottom: 10px; }
-        .lesson-card p { margin-bottom: 15px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px 0;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #playerCards .card {
+            display: inline-block;
+            width: 60px;
+            height: 90px;
+            background-color: #ddd;
+            margin: 5px;
+            text-align: center;
+            line-height: 90px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #playerCards .card.red { background-color: red; }
+        #playerCards .card.blue { background-color: blue; }
+        #playerCards .card.green { background-color: green; }
+        #playerCards .card.yellow { background-color: yellow; }
+        #playerCards .card.wild { background-color: black; color: white; }
+        #playerCards .card.skip { background-color: purple; }
+        #playerCards .card.reverse { background-color: orange; }
+        #playerCards .card.plus2 { background-color: pink; }
+
+        #timer {
+            font-size: 20px;
+            color: red;
+            margin-top: 20px;
+        }
+
+        #notification {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #555;
+        }
+
+        #turnInfo {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        #game-over {
+            font-size: 22px;
+            margin-top: 20px;
+            color: green;
+            display: none;
+        }
+
+        #waiting {
+            font-size: 20px;
+            color: #333;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>منصة تعليمية متكاملة</h1>
-        <button onclick="window.location.href = '/login.html';">تسجيل الدخول</button>
-    </header>
+    <div class="container">
+        <h1>لعبة UNO أونلاين</h1>
 
-    <section id="qa">
-        <h2>طرح الأسئلة والإجابات</h2>
-        <form id="askQuestionForm">
-            <textarea id="question" placeholder="اكتب سؤالك هنا..." required></textarea>
-            <button type="submit">طرح السؤال</button>
-        </form>
-        <div id="questionsList"></div>
-    </section>
-
-    <section id="chat">
-        <h2>الدردشة مع المعلمين</h2>
-        <div class="chat-box" id="chatBox"></div>
-        <div class="chat-form">
-            <input type="text" id="chatInput" placeholder="أرسل رسالة...">
-            <button id="sendChatMessage">إرسال</button>
+        <div id="auth-section">
+            <button id="loginBtn">تسجيل الدخول</button>
+            <button id="logoutBtn" style="display:none;">تسجيل الخروج</button>
         </div>
-    </section>
 
-    <section id="lessonSection">
-        <h2>الدروس التعليمية</h2>
-        <div class="lesson-card">
-            <h3>درس: التاريخ</h3>
-            <p>محتوى الدرس: تعرف على تاريخ العالم القديم...</p>
-            <button onclick="openLesson('videoUrlHere')">شاهد الفيديو</button>
+        <div id="room-section" style="display:none;">
+            <input type="text" id="roomName" placeholder="اسم الغرفة">
+            <button id="createRoomBtn">إنشاء غرفة</button>
+            <button id="joinRoomBtn">الانضمام لغرفة</button>
         </div>
-        <div class="lesson-card">
-            <h3>درس: الرياضيات</h3>
-            <p>محتوى الدرس: تعلم العمليات الحسابية الأساسية...</p>
-            <button onclick="openLesson('videoUrlHere')">شاهد الفيديو</button>
+
+        <div id="waiting" style="display:none;">
+            <p>جاري انتظار اللاعبين...</p>
         </div>
-    </section>
 
-    <section id="quizSection" class="quiz-section">
-        <h2>اختبار تفاعلي</h2>
-        <div class="quiz-question" id="quizQuestion"></div>
-        <div class="quiz-options">
-            <button class="quiz-option" onclick="checkAnswer(0)">الاختيار 1</button>
-            <button class="quiz-option" onclick="checkAnswer(1)">الاختيار 2</button>
-            <button class="quiz-option" onclick="checkAnswer(2)">الاختيار 3</button>
-            <button class="quiz-option" onclick="checkAnswer(3)">الاختيار 4</button>
+        <div id="game-section" style="display:none;">
+            <div id="playerCards"></div>
+            <div id="gameControls">
+                <button id="playCardBtn">العب بطاقة</button>
+                <button id="endTurnBtn">إنهاء الدور</button>
+            </div>
+            <div id="turnInfo"></div>
+            <div id="timer">00:30</div>
+            <div id="notification"></div>
         </div>
-    </section>
 
-    <footer>
-        <p>&copy; 2024 منصة تعليمية متكاملة</p>
-    </footer>
+        <div id="game-over"></div>
+    </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script>
+        // إعداد Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
             authDomain: "who-is-the-spy-51308.firebaseapp.com",
@@ -95,121 +159,191 @@
             appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
             measurementId: "G-NWXDDDRPRH"
         };
-
         const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const db = firebase.database();
         const auth = firebase.auth();
 
-        // إضافة وظيفة لطرح الأسئلة
-        document.getElementById('askQuestionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const questionText = document.getElementById('question').value;
-            const user = auth.currentUser;
-            if (user && questionText) {
-                const questionRef = db.collection('questions').add({
-                    question: questionText,
-                    userId: user.uid,
-                    timestamp: Date.now()
-                }).then(() => {
-                    document.getElementById('question').value = ''; 
+        // واجهة المستخدم
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const createRoomBtn = document.getElementById("createRoomBtn");
+        const joinRoomBtn = document.getElementById("joinRoomBtn");
+        const roomNameInput = document.getElementById("roomName");
+        const gameSection = document.getElementById("game-section");
+        const playerCardsDiv = document.getElementById("playerCards");
+        const playCardBtn = document.getElementById("playCardBtn");
+        const endTurnBtn = document.getElementById("endTurnBtn");
+        const turnInfo = document.getElementById("turnInfo");
+        const timerDiv = document.getElementById("timer");
+        const notificationDiv = document.getElementById("notification");
+        const gameOverDiv = document.getElementById("game-over");
+        const waitingDiv = document.getElementById("waiting");
+
+        let currentUser = null;
+        let currentRoom = null;
+        let currentPlayerIndex = 0;
+        let players = [];
+        let playerCards = {};
+        let gameTimer = 30;
+        let timerInterval = null;
+
+        // تسجيل الدخول والخروج
+        loginBtn.addEventListener("click", () => {
+            const email = prompt("أدخل بريدك الإلكتروني:");
+            const password = prompt("أدخل كلمة المرور:");
+            auth.signInWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    currentUser = userCredential.user;
+                    loginBtn.style.display = "none";
+                    logoutBtn.style.display = "inline-block";
+                    document.getElementById("room-section").style.display = "block";
+                })
+                .catch(error => alert("خطأ في التسجيل"));
+        });
+
+        logoutBtn.addEventListener("click", () => {
+            auth.signOut().then(() => {
+                currentUser = null;
+                loginBtn.style.display = "inline-block";
+                logoutBtn.style.display = "none";
+                document.getElementById("room-section").style.display = "none";
+                document.getElementById("auth-section").style.display = "block";
+            });
+        });
+
+        // إنشاء غرفة جديدة
+        createRoomBtn.addEventListener("click", () => {
+            const roomName = roomNameInput.value;
+            if (roomName) {
+                const newRoomRef = db.ref('rooms').push();
+                newRoomRef.set({
+                    name: roomName,
+                    players: [currentUser.uid],
+                    gameState: 'waiting',
+                    playerCards: {},
+                    turn: 0
+                });
+                currentRoom = newRoomRef.key;
+                startGame();
+            }
+        });
+
+        // الانضمام إلى غرفة
+        joinRoomBtn.addEventListener("click", () => {
+            const roomName = roomNameInput.value;
+            if (roomName) {
+                const roomsRef = db.ref('rooms');
+                roomsRef.orderByChild('name').equalTo(roomName).once('value', snapshot => {
+                    const rooms = snapshot.val();
+                    if (rooms) {
+                        const roomId = Object.keys(rooms)[0];
+                        const roomRef = roomsRef.child(roomId);
+                        roomRef.child('players').push(currentUser.uid);
+                        currentRoom = roomId;
+                        startGame();
+                    } else {
+                        alert("الغرفة غير موجودة");
+                    }
                 });
             }
         });
 
-        function loadQuestions() {
-            const questionsRef = db.collection('questions');
-            questionsRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-                const questionsList = document.getElementById('questionsList');
-                questionsList.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const question = doc.data();
-                    const questionItem = document.createElement('div');
-                    questionItem.classList.add('question-item');
-                    questionItem.innerHTML = `<p><strong>سؤال:</strong> ${question.question}</p>`;
-                    questionsList.appendChild(questionItem);
-                });
+        // بدء اللعبة
+        function startGame() {
+            document.getElementById("room-section").style.display = "none";
+            waitingDiv.style.display = "block";
+            db.ref(`rooms/${currentRoom}`).on('value', snapshot => {
+                const roomData = snapshot.val();
+                if (roomData) {
+                    players = roomData.players;
+                    currentPlayerIndex = roomData.turn;
+                    playerCards = roomData.playerCards;
+                    distributeCards(roomData.players);
+                }
             });
         }
 
-        loadQuestions();
+        // توزيع البطاقات عشوائياً
+        function distributeCards(players) {
+            const cards = generateDeck();
+            const playerDecks = {};
 
-        // إضافة وظيفة للدردشة مع المعلمين
-        document.getElementById('sendChatMessage').addEventListener('click', () => {
-            const message = document.getElementById('chatInput').value;
-            const user = auth.currentUser;
-            if (user && message) {
-                const chatRef = db.collection('chats').add({
-                    message: message,
-                    userId: user.uid,
-                    timestamp: Date.now()
-                }).then(() => {
-                    document.getElementById('chatInput').value = ''; 
-                });
-            }
-        });
+            players.forEach(player => {
+                const playerDeck = [];
+                for (let i = 0; i < 7; i++) {
+                    const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                    playerDeck.push(randomCard);
+                    cards.splice(cards.indexOf(randomCard), 1);
+                }
+                playerDecks[player] = playerDeck;
+            });
 
-        function loadChat() {
-            const chatRef = db.collection('chats');
-            chatRef.orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-                const chatBox = document.getElementById('chatBox');
-                chatBox.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const chatMessage = doc.data();
-                    const chatItem = document.createElement('div');
-                    chatItem.classList.add('chat-message');
-                    chatItem.innerHTML = `<p><strong>رسالة:</strong> ${chatMessage.message}</p>`;
-                    chatBox.appendChild(chatItem);
+            db.ref(`rooms/${currentRoom}`).update({ playerCards: playerDecks });
+            displayCards(playerDecks[currentUser.uid]);
+        }
+
+        // إنشاء مجموعة البطاقات
+        function generateDeck() {
+            const colors = ["red", "blue", "green", "yellow"];
+            const values = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+2", "skip", "reverse"];
+            let deck = [];
+            colors.forEach(color => {
+                values.forEach(value => {
+                    deck.push(`${color}-${value}`);
                 });
+            });
+            deck = deck.concat(["wild", "wild+4"]);
+            return deck;
+        }
+
+        // عرض البطاقات
+        function displayCards(cards) {
+            playerCardsDiv.innerHTML = "";
+            cards.forEach(card => {
+                const [color, value] = card.split("-");
+                const cardDiv = document.createElement("div");
+                cardDiv.classList.add("card", color);
+                cardDiv.innerText = value;
+                cardDiv.addEventListener("click", () => playCard(card));
+                playerCardsDiv.appendChild(cardDiv);
             });
         }
 
-        loadChat();
-
-        function openLesson(url) {
-            window.open(url, '_blank');
+        // لعب بطاقة
+        function playCard(card) {
+            const [color, value] = card.split("-");
+            // منطق لعب البطاقة هنا، يمكن إضافة القواعد الخاصة بالبطاقات مثل +2، Reverse، Skip
+            notificationDiv.innerText = `تم لعب بطاقة ${color} - ${value}`;
+            checkWinCondition();
         }
 
-        // إعداد اختبار
-        const quizQuestions = [
-            {
-                question: "ما هو جمع 2 + 2؟",
-                options: ["3", "4", "5", "6"],
-                answer: 1
-            },
-            {
-                question: "ما هو عاصمة مصر؟",
-                options: ["الإسكندرية", "القاهرة", "أسوان", "الأقصر"],
-                answer: 1
-            }
-        ];
-
-        let currentQuestionIndex = 0;
-
-        function loadQuiz() {
-            const question = quizQuestions[currentQuestionIndex];
-            document.getElementById('quizQuestion').innerText = question.question;
-            const options = document.querySelectorAll('.quiz-option');
-            options.forEach((option, index) => {
-                option.innerText = question.options[index];
-            });
-        }
-
-        function checkAnswer(selectedOption) {
-            const question = quizQuestions[currentQuestionIndex];
-            if (selectedOption === question.answer) {
-                alert("إجابة صحيحة!");
-            } else {
-                alert("إجابة خاطئة!");
-            }
-            currentQuestionIndex++;
-            if (currentQuestionIndex < quizQuestions.length) {
-                loadQuiz();
-            } else {
-                alert("انتهى الاختبار!");
+        // التحقق من فوز اللاعب
+        function checkWinCondition() {
+            if (playerCards[currentUser.uid].length === 0) {
+                gameOverDiv.innerText = "لقد فزت!";
+                gameOverDiv.style.display = "block";
             }
         }
 
-        loadQuiz();
+        // تحديث مؤقت الدور
+        function startTurnTimer() {
+            gameTimer = 30;
+            timerInterval = setInterval(() => {
+                gameTimer--;
+                timerDiv.innerText = `00:${gameTimer < 10 ? '0' + gameTimer : gameTimer}`;
+                if (gameTimer <= 0) {
+                    endTurn();
+                }
+            }, 1000);
+        }
+
+        // إنهاء الدور
+        function endTurn() {
+            clearInterval(timerInterval);
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            db.ref(`rooms/${currentRoom}`).update({ turn: currentPlayerIndex });
+            startTurnTimer();
+        }
     </script>
 </body>
 </html>
