@@ -95,6 +95,7 @@
             font-weight: bold;
             color: #ff6347;
             margin-top: 20px;
+            display: none; /* إخفاء بشكل افتراضي */
         }
         #timer {
             font-size: 30px;
@@ -246,107 +247,33 @@ logoutBtn.addEventListener('click', function() {
 // مراقبة حالة المستخدم
 auth.onAuthStateChanged(function(user) {
     if (user) {
-        authSection.style.display = 'none';
-        roomSection.style.display = 'block';
-        logoutBtn.style.display = 'inline-block';
-        loginBtn.style.display = 'none';
+        // إذا كان المستخدم مسجل دخول
+        authSection.style.display = 'none';  // إخفاء قسم التسجيل
+        roomSection.style.display = 'block';  // إظهار قسم الغرف
+        logoutBtn.style.display = 'inline-block'; // إظهار زر تسجيل الخروج
+        loginBtn.style.display = 'none'; // إخفاء زر تسجيل الدخول
     } else {
-        authSection.style.display = 'block';
-        roomSection.style.display = 'none';
-        loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
+        // إذا كان المستخدم غير مسجل دخول
+        authSection.style.display = 'block'; // إظهار قسم التسجيل
+        roomSection.style.display = 'none';  // إخفاء قسم الغرف
+        loginBtn.style.display = 'inline-block';  // إظهار زر تسجيل الدخول
+        logoutBtn.style.display = 'none'; // إخفاء زر تسجيل الخروج
     }
 });
 
-// إنشاء غرفة
-document.getElementById('createRoomBtn').addEventListener('click', function() {
-    const roomName = roomNameInput.value;
-    if (roomName) {
-        const userId = auth.currentUser.uid;
-        db.ref('rooms/' + roomName).set({
-            creator: userId,
-            players: [userId],
-            status: 'waiting'
-        });
-        roomSection.style.display = 'none';
-        waitingSection.style.display = 'block';
-    } else {
-        alert('من فضلك أدخل اسم الغرفة!');
-    }
-});
-
-// الانضمام إلى غرفة
-document.getElementById('joinRoomBtn').addEventListener('click', function() {
-    const roomName = roomNameInput.value;
-    if (roomName) {
-        const userId = auth.currentUser.uid;
-        db.ref('rooms/' + roomName).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const roomData = snapshot.val();
-                if (roomData.status === 'waiting') {
-                    db.ref('rooms/' + roomName + '/players').push(userId);
-                    roomSection.style.display = 'none';
-                    waitingSection.style.display = 'block';
-                } else {
-                    alert('الغرفة ممتلئة!');
-                }
-            } else {
-                alert('الغرفة غير موجودة!');
-            }
-        });
-    } else {
-        alert('من فضلك أدخل اسم الغرفة!');
-    }
-});
-
-// توزيع البطاقات
-function dealCards() {
-    const cards = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'DrawTwo'];
-    const shuffledCards = cards.sort(() => Math.random() - 0.5);
-    return shuffledCards.slice(0, 7);
+// هنا تضع الوظيفة التي تحدد متى تنتهي اللعبة
+// على سبيل المثال:
+function endGame() {
+    // عند نهاية اللعبة
+    gameOverSection.style.display = 'block'; // إظهار الرسالة
+    gameSection.style.display = 'none'; // إخفاء قسم اللعبة
 }
 
-// عرض البطاقات
-function displayPlayerCards(cards) {
-    playerCards.innerHTML = '';
-    cards.forEach(card => {
-        const cardElement = document.createElement('div');
-        cardElement.classList.add('card');
-        cardElement.textContent = card;
-        playerCards.appendChild(cardElement);
-    });
-}
-
-// لعب البطاقة
-document.getElementById('playCardBtn').addEventListener('click', function() {
-    const card = 'Card Played';
-    notification.textContent = 'تم لعب البطاقة: ' + card;
-});
-
-// إنهاء الدور
-document.getElementById('endTurnBtn').addEventListener('click', function() {
-    notification.textContent = 'تم إنهاء الدور.';
-});
-
-// بدء اللعبة
-function startGame() {
-    displayPlayerCards(dealCards());
-    turnInfo.textContent = 'دورك الآن!';
-}
-
-// عداد الوقت
-let gameTime = 30;
-const countdownTimer = setInterval(() => {
-    if (gameTime > 0) {
-        gameTime--;
-        timer.textContent = `00:${gameTime < 10 ? '0' + gameTime : gameTime}`;
-    } else {
-        clearInterval(countdownTimer);
-        notification.textContent = 'الوقت انتهى!';
-    }
-}, 1000);
+// إذا كنت ترغب في إخفاء الرسالة بعد وقت معين
+setTimeout(function() {
+    gameOverSection.style.display = 'none'; // إخفاء الرسالة بعد 5 ثواني
+}, 5000);
 </script>
 
 </body>
 </html>
-
