@@ -109,6 +109,10 @@
             color: #333;
             margin-top: 20px;
         }
+#loginBtn, #logoutBtn {
+            display: inline-block;
+            margin: 10px;
+        }
     </style>
 </head>
 <body>
@@ -189,7 +193,7 @@
         let gameTimer = 30;
         let timerInterval = null;
 
-         loginBtn.addEventListener('click', function() {
+          loginBtn.addEventListener('click', function() {
             auth.signInWithPopup(provider)
                 .then((result) => {
                     // تسجيل الدخول ناجح
@@ -197,6 +201,8 @@
                     console.log('تسجيل الدخول ناجح! مرحبًا ' + user.displayName);
                     authSection.style.display = 'none';
                     roomSection.style.display = 'block';
+                    logoutBtn.style.display = 'inline-block';
+                    loginBtn.style.display = 'none';
                 })
                 .catch((error) => {
                     console.error('خطأ في تسجيل الدخول: ', error.message);
@@ -211,6 +217,8 @@
                     console.log('تم تسجيل الخروج');
                     authSection.style.display = 'block';
                     roomSection.style.display = 'none';
+                    loginBtn.style.display = 'inline-block';
+                    logoutBtn.style.display = 'none';
                 })
                 .catch((error) => {
                     console.error('خطأ في تسجيل الخروج: ', error.message);
@@ -224,15 +232,17 @@
                 console.log('المستخدم الحالي: ', user.displayName);
                 authSection.style.display = 'none';
                 roomSection.style.display = 'block';
-                logoutBtn.style.display = 'inline';
+                logoutBtn.style.display = 'inline-block';
+                loginBtn.style.display = 'none';
             } else {
                 // المستخدم غير مسجل دخول
                 console.log('لا يوجد مستخدم مسجل دخول');
                 authSection.style.display = 'block';
                 roomSection.style.display = 'none';
+                loginBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
             }
         });
-
         // إنشاء غرفة جديدة
         createRoomBtn.addEventListener("click", () => {
             const roomName = roomNameInput.value;
