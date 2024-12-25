@@ -1,295 +1,211 @@
-
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة UNO أونلاين</title>
+    <title>UNO Online</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background: #f2f2f2;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 900px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            color: #ff6347;
-            font-size: 40px;
-            margin-bottom: 20px;
-        }
-        .button {
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        .button:hover {
-            background-color: #ff6347;
-            color: white;
-            transform: scale(1.05);
-        }
-        .button:active {
-            transform: scale(0.98);
-        }
-        .button-primary {
-            background-color: #007bff;
-            color: white;
-        }
-        .button-secondary {
-            background-color: #28a745;
-            color: white;
-        }
-        #roomName {
-            padding: 10px;
-            font-size: 18px;
-            margin: 10px 0;
-            width: 80%;
-            border-radius: 8px;
-            border: 1px solid #ccc;
         }
         .card {
-            width: 80px;
-            height: 120px;
-            background-color: #f0ad4e;
-            margin: 10px;
-            border-radius: 10px;
             display: inline-block;
-            text-align: center;
-            font-size: 22px;
-            line-height: 120px;
-            color: white;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s ease;
         }
-        .card:hover {
-            transform: scale(1.1);
-        }
-        #game-section {
+        .red { background-color: red; }
+        .blue { background-color: blue; }
+        .yellow { background-color: yellow; color: #000; }
+        .green { background-color: green; }
+        .wild { background-color: black; }
+        #login-container, #game-container {
             display: none;
         }
-        .player-info {
-            margin-top: 30px;
-            font-size: 20px;
-        }
-        .player-info span {
-            display: block;
-            margin: 5px 0;
-        }
-        #game-over {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff6347;
-            margin-top: 20px;
-            display: none; /* إخفاء بشكل افتراضي */
-        }
-        #timer {
-            font-size: 30px;
-            color: #007bff;
-        }
-        #current-card {
-            margin-top: 30px;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        #waiting {
-            margin-top: 20px;
-            font-size: 20px;
-            color: #888;
-        }
-        .animated-text {
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-            animation: fadeIn 1.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        #game-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-        }
-        .game-details {
-            font-size: 18px;
-            color: #007bff;
-        }
+        #deck { font-size: 1.5em; }
+        #players-list { list-style: none; padding: 0; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>لعبة UNO أونلاين</h1>
-
-    <!-- قسم التوثيق -->
-    <div id="auth-section">
-        <button id="loginBtn" class="button button-primary">تسجيل الدخول باستخدام جوجل</button>
-        <button id="logoutBtn" class="button button-secondary" style="display:none;">تسجيل الخروج</button>
+    <!-- صفحة تسجيل الدخول -->
+    <div id="login-container">
+        <h1>UNO Online</h1>
+        <button id="google-login">Login with Google</button>
     </div>
 
-    <!-- قسم الغرف (سيظهر بعد تسجيل الدخول) -->
-    <div id="room-section" style="display:none;">
-        <input type="text" id="roomName" placeholder="اسم الغرفة" />
-        <button id="createRoomBtn" class="button button-primary">إنشاء غرفة</button>
-        <button id="joinRoomBtn" class="button button-secondary">الانضمام لغرفة</button>
-    </div>
-
-    <!-- قسم الانتظار -->
-    <div id="waiting" style="display:none;">
-        <p class="animated-text">جاري انتظار اللاعبين...</p>
-    </div>
-
-    <!-- قسم اللعبة -->
-    <div id="game-section">
+    <!-- صفحة اللعبة -->
+    <div id="game-container">
+        <h1>UNO Game</h1>
         <div id="game-info">
-            <div class="game-details">
-                <div id="turnInfo">دورك الآن!</div>
-                <div id="timer">00:30</div>
-            </div>
-            <div class="game-details">
-                <div id="current-card">البطاقة الحالية: <span id="currentCardText">غير موجودة</span></div>
-            </div>
+            <p id="current-turn"></p>
+            <div id="deck"></div>
         </div>
-        <div id="playerCards" class="player-cards"></div>
-        <div id="gameControls">
-            <button id="playCardBtn" class="button button-primary">العب بطاقة</button>
-            <button id="endTurnBtn" class="button button-secondary">إنهاء الدور</button>
-        </div>
-        <div id="notification"></div>
+        <ul id="players-list"></ul>
+        <div id="player-hand"></div>
     </div>
 
-    <!-- قسم نهاية اللعبة -->
-    <div id="game-over">انتهت اللعبة!</div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<script>
-// إعداد Firebase
-const firebaseConfig = {
-    apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-    authDomain: "who-is-the-spy-51308.firebaseapp.com",
-    databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "who-is-the-spy-51308",
-    storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-    messagingSenderId: "900253646275",
-    appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-    measurementId: "G-NWXDDDRPRH"
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js"></script>
+    <script>
+        // تهيئة Firebase
+        const firebaseConfig = {
+  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
+  authDomain: "who-is-the-spy-51308.firebaseapp.com",
+  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "who-is-the-spy-51308",
+  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
+  messagingSenderId: "900253646275",
+  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
+  measurementId: "G-NWXDDDRPRH"
 };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
 
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
+        // المتغيرات العامة
+        let currentUser = null;
+        let roomId = null;
+        let players = [];
+        let currentPlayerIndex = 0;
+        let deck = [];
+        let openCard = null;
+        let direction = 1;
 
-const provider = new firebase.auth.GoogleAuthProvider();
+        // عرض صفحة تسجيل الدخول
+        document.getElementById('login-container').style.display = 'block';
 
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const roomSection = document.getElementById('room-section');
-const authSection = document.getElementById('auth-section');
-const gameSection = document.getElementById('game-section');
-const waitingSection = document.getElementById('waiting');
-const gameOverSection = document.getElementById('game-over');
-const playerCards = document.getElementById('playerCards');
-const turnInfo = document.getElementById('turnInfo');
-const timer = document.getElementById('timer');
-const currentCardText = document.getElementById('currentCardText');
-const notification = document.getElementById('notification');
-const roomNameInput = document.getElementById('roomName');
-
-// وظيفة تسجيل الدخول
-loginBtn.addEventListener('click', function() {
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            const user = result.user;
-            authSection.style.display = 'none';
-            roomSection.style.display = 'block';  // عرض قسم إنشاء الغرف بعد تسجيل الدخول
-            logoutBtn.style.display = 'inline-block';
-            loginBtn.style.display = 'none';
-        })
-        .catch((error) => {
-            console.error('خطأ في تسجيل الدخول: ', error.message);
+        // تسجيل الدخول باستخدام Google
+        document.getElementById('google-login').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then(result => {
+                currentUser = result.user;
+                document.getElementById('login-container').style.display = 'none';
+                showGame();
+            }).catch(error => {
+                alert('Error during login: ' + error.message);
+            });
         });
-});
 
-// وظيفة تسجيل الخروج
-logoutBtn.addEventListener('click', function() {
-    auth.signOut()
-        .then(() => {
-            authSection.style.display = 'block';
-            roomSection.style.display = 'none';
-            loginBtn.style.display = 'inline-block';
-            logoutBtn.style.display = 'none';
-            gameSection.style.display = 'none'; // إخفاء قسم اللعبة بعد تسجيل الخروج
-            waitingSection.style.display = 'none'; // إخفاء قسم الانتظار
-        })
-        .catch((error) => {
-            console.error('خطأ في تسجيل الخروج: ', error.message);
-        });
-});
+        // عرض واجهة اللعبة
+        function showGame() {
+            document.getElementById('game-container').style.display = 'block';
+            initializeGame();
+        }
 
-// مراقبة حالة المستخدم
-auth.onAuthStateChanged(function(user) {
-    if (user) {
-        // إذا كان المستخدم مسجل دخول
-        authSection.style.display = 'none';
-        roomSection.style.display = 'block';  // إظهار قسم الغرف
-        logoutBtn.style.display = 'inline-block'; 
-        loginBtn.style.display = 'none';
-    } else {
-        // إذا كان المستخدم غير مسجل دخول
-        authSection.style.display = 'block'; 
-        roomSection.style.display = 'none';  
-        loginBtn.style.display = 'inline-block';
-        logoutBtn.style.display = 'none'; 
-    }
-});
+        // تهيئة اللعبة
+        function initializeGame() {
+            createDeck();
+            shuffleDeck();
+            dealCards();
 
-// دالة لإنشاء الغرفة
-document.getElementById('createRoomBtn').addEventListener('click', function() {
-    let roomName = roomNameInput.value;
-    if (roomName) {
-        // هنا يمكنك تنفيذ المنطق لإنشاء غرفة جديدة في Firebase أو السيرفر
-        console.log("إنشاء غرفة باسم: " + roomName);
-        roomSection.style.display = 'none';
-        waitingSection.style.display = 'block';
-    } else {
-        alert("من فضلك أدخل اسم الغرفة");
-    }
-});
+            // إنشاء غرفة في Firebase
+            roomId = `room_${Date.now()}`;
+            db.ref(`rooms/${roomId}`).set({
+                players: players,
+                deck: deck,
+                openCard: openCard,
+                direction: direction,
+                currentPlayerIndex: currentPlayerIndex
+            });
 
-// دالة للانضمام إلى غرفة
-document.getElementById('joinRoomBtn').addEventListener('click', function() {
-    let roomName = roomNameInput.value;
-    if (roomName) {
-        // هنا يمكنك تنفيذ المنطق للانضمام إلى الغرفة الموجودة
-        console.log("الانضمام إلى غرفة باسم: " + roomName);
-        roomSection.style.display = 'none';
-        waitingSection.style.display = 'block';
-    } else {
-        alert("من فضلك أدخل اسم الغرفة");
-    }
-});
-</script>
+            updateGameBoard();
+        }
 
+        // إنشاء مجموعة البطاقات
+        function createDeck() {
+            const colors = ['red', 'blue', 'yellow', 'green'];
+            const specialCards = ['Skip', 'Reverse', 'Draw Two'];
+            const wildCards = ['Wild', 'Wild Draw Four'];
+
+            colors.forEach(color => {
+                for (let i = 0; i <= 9; i++) {
+                    deck.push({ color, value: i });
+                    if (i !== 0) deck.push({ color, value: i });
+                }
+                specialCards.forEach(card => {
+                    deck.push({ color, value: card });
+                    deck.push({ color, value: card });
+                });
+            });
+
+            wildCards.forEach(card => {
+                for (let i = 0; i < 4; i++) {
+                    deck.push({ color: 'wild', value: card });
+                }
+            });
+        }
+
+        // خلط البطاقات
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        // توزيع البطاقات
+        function dealCards() {
+            players = [{ name: currentUser.displayName, cards: [] }];
+            for (let i = 0; i < 7; i++) {
+                players[0].cards.push(deck.pop());
+            }
+            openCard = deck.pop();
+        }
+
+        // تحديث واجهة اللعبة
+        function updateGameBoard() {
+            const openCardDiv = document.getElementById('deck');
+            openCardDiv.innerText = `${openCard.value}`;
+            openCardDiv.className = `card ${openCard.color}`;
+
+            const playersList = document.getElementById('players-list');
+            playersList.innerHTML = '';
+            players.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.innerText = `${player.name} - ${player.cards.length} cards`;
+                if (index === currentPlayerIndex) li.style.fontWeight = 'bold';
+                playersList.appendChild(li);
+            });
+
+            document.getElementById('current-turn').innerText = `Turn: ${players[currentPlayerIndex].name}`;
+            const playerHand = document.getElementById('player-hand');
+            playerHand.innerHTML = '';
+            players[0].cards.forEach((card, index) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = `card ${card.color}`;
+                cardDiv.innerText = card.value;
+                cardDiv.addEventListener('click', () => playCard(index));
+                playerHand.appendChild(cardDiv);
+            });
+        }
+
+        // اللعب
+        function playCard(cardIndex) {
+            const card = players[0].cards[cardIndex];
+            if (card.color !== openCard.color && card.value !== openCard.value && card.color !== 'wild') {
+                alert('Invalid move!');
+                return;
+            }
+            openCard = card;
+            players[0].cards.splice(cardIndex, 1);
+
+            if (players[0].cards.length === 0) {
+                alert(`${players[0].name} wins!`);
+                return;
+            }
+
+            currentPlayerIndex = (currentPlayerIndex + direction + players.length) % players.length;
+            updateGameBoard();
+        }
+    </script>
 </body>
 </html>
