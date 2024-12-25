@@ -116,7 +116,7 @@
         <h1>لعبة UNO أونلاين</h1>
 
         <div id="auth-section">
-            <button id="loginBtn">تسجيل الدخول</button>
+            <button id="loginBtn">تسجيل الدخول باستخدام جوجل</button>
             <button id="logoutBtn" style="display:none;">تسجيل الخروج</button>
         </div>
 
@@ -163,6 +163,7 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
         // واجهة المستخدم
         const loginBtn = document.getElementById("loginBtn");
         const logoutBtn = document.getElementById("logoutBtn");
@@ -170,6 +171,7 @@
         const joinRoomBtn = document.getElementById("joinRoomBtn");
         const roomNameInput = document.getElementById("roomName");
         const gameSection = document.getElementById("game-section");
+        const authSection = document.getElementById('auth-section');
         const playerCardsDiv = document.getElementById("playerCards");
         const playCardBtn = document.getElementById("playCardBtn");
         const endTurnBtn = document.getElementById("endTurnBtn");
@@ -187,28 +189,48 @@
         let gameTimer = 30;
         let timerInterval = null;
 
-        // تسجيل الدخول والخروج
-        loginBtn.addEventListener("click", () => {
-            const email = prompt("أدخل بريدك الإلكتروني:");
-            const password = prompt("أدخل كلمة المرور:");
-            auth.signInWithEmailAndPassword(email, password)
-                .then(userCredential => {
-                    currentUser = userCredential.user;
-                    loginBtn.style.display = "none";
-                    logoutBtn.style.display = "inline-block";
-                    document.getElementById("room-section").style.display = "block";
+         loginBtn.addEventListener('click', function() {
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // تسجيل الدخول ناجح
+                    const user = result.user;
+                    console.log('تسجيل الدخول ناجح! مرحبًا ' + user.displayName);
+                    authSection.style.display = 'none';
+                    roomSection.style.display = 'block';
                 })
-                .catch(error => alert("خطأ في التسجيل"));
+                .catch((error) => {
+                    console.error('خطأ في تسجيل الدخول: ', error.message);
+                });
         });
 
-        logoutBtn.addEventListener("click", () => {
-            auth.signOut().then(() => {
-                currentUser = null;
-                loginBtn.style.display = "inline-block";
-                logoutBtn.style.display = "none";
-                document.getElementById("room-section").style.display = "none";
-                document.getElementById("auth-section").style.display = "block";
-            });
+        // وظيفة تسجيل الخروج
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut()
+                .then(() => {
+                    // تسجيل الخروج ناجح
+                    console.log('تم تسجيل الخروج');
+                    authSection.style.display = 'block';
+                    roomSection.style.display = 'none';
+                })
+                .catch((error) => {
+                    console.error('خطأ في تسجيل الخروج: ', error.message);
+                });
+        });
+
+        // مراقبة حالة المستخدم
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                // تم تسجيل الدخول
+                console.log('المستخدم الحالي: ', user.displayName);
+                authSection.style.display = 'none';
+                roomSection.style.display = 'block';
+                logoutBtn.style.display = 'inline';
+            } else {
+                // المستخدم غير مسجل دخول
+                console.log('لا يوجد مستخدم مسجل دخول');
+                authSection.style.display = 'block';
+                roomSection.style.display = 'none';
+            }
         });
 
         // إنشاء غرفة جديدة
