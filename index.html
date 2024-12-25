@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -143,15 +144,15 @@
         <button id="logoutBtn" class="button button-secondary" style="display:none;">تسجيل الخروج</button>
     </div>
 
-    <!-- قسم الغرف -->
-    <div id="room-section">
+    <!-- قسم الغرف (سيظهر بعد تسجيل الدخول) -->
+    <div id="room-section" style="display:none;">
         <input type="text" id="roomName" placeholder="اسم الغرفة" />
         <button id="createRoomBtn" class="button button-primary">إنشاء غرفة</button>
         <button id="joinRoomBtn" class="button button-secondary">الانضمام لغرفة</button>
     </div>
 
     <!-- قسم الانتظار -->
-    <div id="waiting">
+    <div id="waiting" style="display:none;">
         <p class="animated-text">جاري انتظار اللاعبين...</p>
     </div>
 
@@ -221,7 +222,7 @@ loginBtn.addEventListener('click', function() {
         .then((result) => {
             const user = result.user;
             authSection.style.display = 'none';
-            roomSection.style.display = 'block';
+            roomSection.style.display = 'block';  // عرض قسم إنشاء الغرف بعد تسجيل الدخول
             logoutBtn.style.display = 'inline-block';
             loginBtn.style.display = 'none';
         })
@@ -238,6 +239,8 @@ logoutBtn.addEventListener('click', function() {
             roomSection.style.display = 'none';
             loginBtn.style.display = 'inline-block';
             logoutBtn.style.display = 'none';
+            gameSection.style.display = 'none'; // إخفاء قسم اللعبة بعد تسجيل الخروج
+            waitingSection.style.display = 'none'; // إخفاء قسم الانتظار
         })
         .catch((error) => {
             console.error('خطأ في تسجيل الخروج: ', error.message);
@@ -248,31 +251,44 @@ logoutBtn.addEventListener('click', function() {
 auth.onAuthStateChanged(function(user) {
     if (user) {
         // إذا كان المستخدم مسجل دخول
-        authSection.style.display = 'none';  // إخفاء قسم التسجيل
+        authSection.style.display = 'none';
         roomSection.style.display = 'block';  // إظهار قسم الغرف
-        logoutBtn.style.display = 'inline-block'; // إظهار زر تسجيل الخروج
-        loginBtn.style.display = 'none'; // إخفاء زر تسجيل الدخول
+        logoutBtn.style.display = 'inline-block'; 
+        loginBtn.style.display = 'none';
     } else {
         // إذا كان المستخدم غير مسجل دخول
-        authSection.style.display = 'block'; // إظهار قسم التسجيل
-        roomSection.style.display = 'none';  // إخفاء قسم الغرف
-        loginBtn.style.display = 'inline-block';  // إظهار زر تسجيل الدخول
-        logoutBtn.style.display = 'none'; // إخفاء زر تسجيل الخروج
+        authSection.style.display = 'block'; 
+        roomSection.style.display = 'none';  
+        loginBtn.style.display = 'inline-block';
+        logoutBtn.style.display = 'none'; 
     }
 });
 
-// هنا تضع الوظيفة التي تحدد متى تنتهي اللعبة
-// على سبيل المثال:
-function endGame() {
-    // عند نهاية اللعبة
-    gameOverSection.style.display = 'block'; // إظهار الرسالة
-    gameSection.style.display = 'none'; // إخفاء قسم اللعبة
-}
+// دالة لإنشاء الغرفة
+document.getElementById('createRoomBtn').addEventListener('click', function() {
+    let roomName = roomNameInput.value;
+    if (roomName) {
+        // هنا يمكنك تنفيذ المنطق لإنشاء غرفة جديدة في Firebase أو السيرفر
+        console.log("إنشاء غرفة باسم: " + roomName);
+        roomSection.style.display = 'none';
+        waitingSection.style.display = 'block';
+    } else {
+        alert("من فضلك أدخل اسم الغرفة");
+    }
+});
 
-// إذا كنت ترغب في إخفاء الرسالة بعد وقت معين
-setTimeout(function() {
-    gameOverSection.style.display = 'none'; // إخفاء الرسالة بعد 5 ثواني
-}, 5000);
+// دالة للانضمام إلى غرفة
+document.getElementById('joinRoomBtn').addEventListener('click', function() {
+    let roomName = roomNameInput.value;
+    if (roomName) {
+        // هنا يمكنك تنفيذ المنطق للانضمام إلى الغرفة الموجودة
+        console.log("الانضمام إلى غرفة باسم: " + roomName);
+        roomSection.style.display = 'none';
+        waitingSection.style.display = 'block';
+    } else {
+        alert("من فضلك أدخل اسم الغرفة");
+    }
+});
 </script>
 
 </body>
