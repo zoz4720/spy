@@ -1,288 +1,272 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة تخمين اللاعب مع الغرف</title>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <title>Snake Game</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f2f2f2;
-            color: #333;
-            text-align: center;
-            direction: rtl;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            border: none;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #111;
             color: white;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            border: 5px solid #444;
+            background-color: #222;
+            box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .info {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        h1 {
+            font-size: 48px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(145deg, #6a11cb, #2575fc);
+            color: white;
+            font-size: 22px;
+            border: none;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            transition: 0.3s;
         }
 
-        button:hover {
-            background-color: #45a049;
+        .btn:hover {
+            background: linear-gradient(145deg, #2575fc, #6a11cb);
+            box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.4);
         }
 
-        #chatBox {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            overflow-y: auto;
-            height: 300px;
+        .btn:active {
+            transform: scale(0.98);
         }
 
-        #chatBox p {
-            padding: 5px;
-            margin: 5px 0;
-            background-color: #f1f1f1;
-            border-radius: 5px;
-        }
-
-        #timer {
-            font-size: 20px;
-            margin-top: 20px;
-        }
-
-        #playerGuess {
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-
-        input {
-            padding: 10px;
-            font-size: 16px;
-            margin-top: 20px;
-            width: 80%;
-            border-radius: 5px;
+        .info span {
+            margin: 5px 10px;
         }
     </style>
 </head>
 <body>
-
-    <h1>لعبة تخمين اللاعب مع الغرف</h1>
-    <p>ابدأ لعبة التخمين! حاول تخمين اللاعب الصحيح داخل الغرف.</p>
-    
-    <!-- إنشاء غرفة جديدة -->
-    <div>
-        <button onclick="createRoom()">إنشاء غرفة جديدة</button>
-        <input type="text" id="roomIdInput" placeholder="أدخل رقم الغرفة للانضمام">
-        <button onclick="joinRoom()">انضمام إلى غرفة</button>
+    <div class="info">
+        <span id="score">Score: 0</span> | 
+        <span id="highScore">High Score: 0</span> | 
+        <span id="level">Level: 1</span> | 
+        <span id="time">Time Left: 60s</span>
+    </div>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div class="overlay" id="startScreen">
+        <h1>Snake Game</h1>
+        <button class="btn" onclick="startGame()">Start Game</button>
     </div>
 
-    <!-- شات -->
-    <div id="chatBox"></div>
-    <input type="text" id="chatInput" placeholder="أكتب رسالة هنا...">
-    <button onclick="sendMessage()">إرسال رسالة</button>
-
-    <!-- السؤال والتخمين -->
-    <div id="question"></div>
-    <input type="text" id="playerGuess" placeholder="تخمين اللاعب">
-    <button onclick="submitGuess()">تخمين</button>
-    <div id="status"></div>
-    <div id="timer"></div>
+    <audio id="eatSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    <audio id="gameOverSound" src="https://www.soundjay.com/button/beep-10.wav"></audio>
 
     <script>
-        // Firebase Config
-        const firebaseConfig = {
-  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-  authDomain: "who-is-the-spy-51308.firebaseapp.com",
-  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "who-is-the-spy-51308",
-  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-  messagingSenderId: "900253646275",
-  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH"
-};
-        
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database(app);
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const eatSound = document.getElementById("eatSound");
+        const gameOverSound = document.getElementById("gameOverSound");
 
-        let roomId = "";
-        let correctPlayer = "فينيسيوس جونيور"; // غيّرها حسب اختيارك
-        let currentQuestionIndex = 0;
-        let globalTimer = 60;
-        let currentRound = 1;
-        let playerAnswered = false;
-        let userName = "";
+        const box = 25;
+        const rows = canvas.height / box;
+        const cols = canvas.width / box;
 
-        // تسجيل الدخول باستخدام Google
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    const user = result.user;
-                    userName = user.displayName;
-                    alert(`مرحباً, ${user.displayName}!`);
-                })
-                .catch(error => console.error(error.message));
+        let snake = [{ x: box * 5, y: box * 5 }];
+        let direction = "RIGHT";
+        let food = randomFood();
+        let obstacles = [];
+        let score = 0;
+        let highScore = localStorage.getItem("highScore") || 0;
+        let level = 1;
+        let timeLeft = 60;
+        let gameSpeed = 150;
+        let targetScore = 5 * level;
+        let gameInterval, timerInterval;
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+            if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+            if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+            if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+        });
+
+        function drawBoard() {
+            ctx.fillStyle = level % 2 === 0 ? "#333" : "#222";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // إنشاء غرفة جديدة
-        function createRoom() {
-            const roomRef = database.ref('rooms').push();
-            roomId = roomRef.key;
-            roomRef.set({
-                roomId: roomId,
-                players: {
-                    [userName]: {
-                        score: 0
-                    }
-                },
-                currentRound: 1,
-                questions: [
-                    "هل هو لاعب كرة قدم؟",
-                    "هل هو في الدوري الإسباني؟",
-                    "هل هو مهاجم؟",
-                    "هل هو لاعب برازيلي؟",
-                    "هل هو في ريال مدريد؟",
-                    "هل هو في برشلونة؟",
-                    "هل هو حارس مرمى؟",
-                    "هل هو في الدوري الإنجليزي؟"
-                ]
-            }).then(() => {
-                alert(`تم إنشاء الغرفة بنجاح! رقم الغرفة: ${roomId}`);
-                startGame();
+        function drawSnake() {
+            ctx.fillStyle = "#0f0";
+            snake.forEach((segment, index) => {
+                const gradient = ctx.createLinearGradient(segment.x, segment.y, segment.x + box, segment.y + box);
+                gradient.addColorStop(0, '#00ff00');
+                gradient.addColorStop(1, '#008000');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(segment.x, segment.y, box, box);
             });
         }
 
-        // الانضمام إلى غرفة موجودة
-        function joinRoom() {
-            const enteredRoomId = document.getElementById("roomIdInput").value;
-            if (enteredRoomId === "") {
-                alert("من فضلك أدخل رقم الغرفة.");
-                return;
-            }
-
-            const roomRef = database.ref('rooms/' + enteredRoomId);
-            roomRef.once('value', snapshot => {
-                if (snapshot.exists()) {
-                    roomId = enteredRoomId;
-                    const roomData = snapshot.val();
-                    roomData.players[userName] = { score: 0 }; // إضافة اللاعب إلى الغرفة
-                    roomRef.update({
-                        players: roomData.players
-                    }).then(() => {
-                        alert(`تم الانضمام إلى الغرفة: ${roomId}`);
-                        startGame();
-                    });
-                } else {
-                    alert("الغرفة غير موجودة.");
-                }
-            });
+        function drawFood() {
+            ctx.fillStyle = food.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = food.shadow;
+            ctx.fillRect(food.x, food.y, box, box);
+            ctx.shadowBlur = 0;
         }
 
-        // بدء اللعبة
-        function startGame() {
-            displayRandomQuestion();
-            startGlobalTimer();
-            displayChat();
+        function drawObstacles() {
+            ctx.fillStyle = "#555";
+            obstacles.forEach(obstacle => ctx.fillRect(obstacle.x, obstacle.y, box, box));
         }
 
-        // عرض سؤال عشوائي
-        function displayRandomQuestion() {
-            const roomRef = database.ref('rooms/' + roomId);
-            roomRef.once('value', snapshot => {
-                const roomData = snapshot.val();
-                const randomIndex = Math.floor(Math.random() * roomData.questions.length);
-                const questionElement = document.getElementById("question");
-                questionElement.innerHTML = `
-                    <p>${roomData.questions[randomIndex]}</p>
-                `;
-            });
+        function randomFood() {
+            const colors = [
+                { color: "#f00", shadow: "#ff0000" },
+                { color: "#ff0", shadow: "#ffff00" },
+                { color: "#00f", shadow: "#0000ff" }
+            ];
+            return {
+                x: Math.floor(Math.random() * cols) * box,
+                y: Math.floor(Math.random() * rows) * box,
+                ...colors[Math.floor(Math.random() * colors.length)]
+            };
         }
 
-        // إرسال التخمين
-        function submitGuess() {
-            const playerGuess = document.getElementById("playerGuess").value;
-            if (!playerGuess) {
-                alert("من فضلك أدخل تخمينك!");
-                return;
-            }
-
-            const statusElement = document.getElementById("status");
-            if (playerGuess === correctPlayer) {
-                statusElement.innerHTML = `<p>أنت اكتشفت اللاعب! هو ${correctPlayer}</p>`;
-                savePlayerStats(true);
-                stopGlobalTimer();
-            } else {
-                statusElement.innerHTML = `<p>تخمينك غلط! حاول مرة تانية.</p>`;
-                savePlayerStats(false);
-            }
-        }
-
-        // حفظ إحصائيات اللاعب
-        function savePlayerStats(correctAnswer) {
-            const roomRef = database.ref('rooms/' + roomId);
-            roomRef.once('value', snapshot => {
-                const roomData = snapshot.val();
-                roomData.players[userName].score += correctAnswer ? 1 : 0;
-                roomRef.update({
-                    players: roomData.players
+        function generateObstacles() {
+            obstacles = [];
+            for (let i = 0; i < level; i++) {
+                obstacles.push({
+                    x: Math.floor(Math.random() * cols) * box,
+                    y: Math.floor(Math.random() * rows) * box
                 });
-            });
+            }
         }
 
-        // مؤقت عالمي (عرض الوقت المتبقي)
-        function startGlobalTimer() {
-            setInterval(() => {
-                if (globalTimer > 0) {
-                    globalTimer--;
-                    document.getElementById("timer").innerText = `الوقت المتبقي: ${globalTimer} ثانية`;
-                } else {
-                    alert("انتهى الوقت!");
-                    stopGlobalTimer();
+        function updateSnake() {
+            const head = { ...snake[0] };
+            if (direction === "UP") head.y -= box;
+            if (direction === "DOWN") head.y += box;
+            if (direction === "LEFT") head.x -= box;
+            if (direction === "RIGHT") head.x += box;
+
+            if (head.x === food.x && head.y === food.y) {
+                eatSound.play();
+                score++;
+                food = randomFood();
+                if (score >= targetScore) {
+                    levelUp();
                 }
+            } else {
+                snake.pop();
+            }
+
+            snake.unshift(head);
+
+            if (
+                head.x < 0 ||
+                head.x >= canvas.width ||
+                head.y < 0 ||
+                head.y >= canvas.height ||
+                snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y) ||
+                obstacles.some(obstacle => obstacle.x === head.x && obstacle.y === head.y)
+            ) {
+                gameOver();
+            }
+        }
+
+        function levelUp() {
+            level++;
+            targetScore = 5 * level;
+            timeLeft = 60;
+            generateObstacles();
+            clearInterval(gameInterval);
+            gameSpeed = Math.max(50, gameSpeed - 10);
+            gameInterval = setInterval(gameLoop, gameSpeed);
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            clearInterval(timerInterval);
+            gameOverSound.play();
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem("highScore", highScore);
+            }
+            alert(`Game Over! Final Score: ${score}, Level: ${level}`);
+            window.location.reload();
+        }
+
+        function drawScore() {
+            document.getElementById("score").innerText = `Score: ${score}`;
+            document.getElementById("highScore").innerText = `High Score: ${highScore}`;
+            document.getElementById("level").innerText = `Level: ${level}`;
+            document.getElementById("time").innerText = `Time Left: ${timeLeft}s`;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) gameOver();
+                drawScore();
             }, 1000);
         }
 
-        function stopGlobalTimer() {
-            globalTimer = 0;
-            document.getElementById("timer").innerText = `انتهى الوقت!`;
+        function gameLoop() {
+            drawBoard();
+            drawSnake();
+            drawFood();
+            drawObstacles();
+            updateSnake();
+            drawScore();
         }
 
-        // إرسال رسالة في الشات
-        function sendMessage() {
-            const message = document.getElementById("chatInput").value;
-            if (message.trim() === "") return;
-
-            const chatRef = database.ref('rooms/' + roomId + '/chatMessages/');
-            chatRef.push({
-                user: userName,
-                message: message,
-                timestamp: Date.now()
-            });
-
-            document.getElementById("chatInput").value = "";
+        function startGame() {
+            document.getElementById("startScreen").style.display = "none";
+            generateObstacles();
+            gameInterval = setInterval(gameLoop, gameSpeed);
+            startTimer();
         }
-
-        // عرض الشات
-        function displayChat() {
-            const chatRef = database.ref('rooms/' + roomId + '/chatMessages/');
-            chatRef.on('child_added', snapshot => {
-                const message = snapshot.val();
-                const chatBox = document.getElementById("chatBox");
-                const messageElement = document.createElement("p");
-                messageElement.textContent = `${message.user}: ${message.message}`;
-                chatBox.appendChild(messageElement);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
-        }
-
-        // تسجيل الدخول عند بداية اللعبة
-        loginWithGoogle();
     </script>
 </body>
 </html>
