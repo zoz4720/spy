@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scientific Calculator</title>
   <style>
-    
+    /* إعدادات الأساس */
     * {
       margin: 0;
       padding: 0;
@@ -30,16 +30,16 @@
       border-radius: 12px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
       text-align: center;
-      height: 510px; 
+      height: 510px; /* زيادة الارتفاع لضمان أن الأزرار كلها تكون داخل الآلة */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
-    
+    /* إعدادات العرض */
     .display {
       width: 100%;
-      height: 50px; 
+      height: 50px; /* تم تقليله */
       background-color: #333;
       border: none;
       border-radius: 10px;
@@ -54,12 +54,12 @@
     /* History */
     .history {
       width: 100%;
-      height: 60px; 
+      height: 60px; /* تم تقليله */
       overflow-y: auto;
       background-color: #444;
       padding: 10px;
       border-radius: 8px;
-      margin-bottom: 10px; 
+      margin-bottom: 10px; /* تقليل المسافة بين التاريخ والأزرار */
     }
 
     .history p {
@@ -67,12 +67,12 @@
       color: #bbb;
     }
 
-    
+    /* إعدادات الأزرار */
     .buttons {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
-      grid-auto-rows: 50px; 
+      grid-auto-rows: 50px; /* التأكد من أن الأزرار كلها بحجم مناسب */
     }
 
     .button {
@@ -102,7 +102,7 @@
       background-color: #dc3545;
     }
 
-    
+    /* الوضع الداكن والفاتح */
     .dark-theme {
       background-color: #222;
       color: white;
@@ -131,7 +131,7 @@
       background-color: #bbb;
     }
 
-    
+    /* زر التبديل بين الوضعين */
     .theme-toggle {
       position: absolute;
       top: 20px;
@@ -184,7 +184,7 @@
     </div>
   </div>
 
-
+  <!-- زر التبديل بين الوضعين -->
   <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 
   <script>
@@ -216,24 +216,22 @@
       const display = document.getElementById('display');
       let expression = display.value;
 
-      
+      // تحويل الرموز للأشكال البرمجية
       expression = expression.replace(/÷/g, '/');
       expression = expression.replace(/×/g, '*');
       expression = expression.replace(/−/g, '-');
-      expression = expression.replace(/\^/g, ''); 
+      expression = expression.replace(/\^/g, '**'); // الأسس تُحول لـ **
 
-      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)'); 
+      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)'); // جذر بدون أقواس
 
       // التعامل مع ضرب الجذور
-      expression = expression.replace(/Math\.sqrt\((.?)\) \ Math\.sqrt\((.*?)\)/g, function(match, p1, p2) {
-        const product = parseFloat(p1) * parseFloat(p2);
-        return 'Math.sqrt(' + product + ')';
-      });
+      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)');
+      expression = expression.replace(/Math\.sqrt\((.*?)\) \* Math\.sqrt\((.*?)\)/g, 'Math.sqrt($1 * $2)');
 
       try {
         const result = eval(expression);
         display.value = result;
-        history.unshift(${expression} = ${result}); 
+        history.unshift(`${expression} = ${result}`); // حفظ العملية في الذاكرة
         updateHistory();
       } catch {
         display.value = 'Error';
@@ -247,7 +245,7 @@
 
     function deleteLast() {
       const display = document.getElementById('display');
-      display.value = display.value.slice(0, -1); 
+      display.value = display.value.slice(0, -1); // حذف آخر حرف من النص في الشاشة
     }
 
     function convertToFraction() {
@@ -258,14 +256,14 @@
         const parts = value.split('/');
         display.value = parseFloat(parts[0]) / parseFloat(parts[1]);
       } else {
-        display.value = value + '/1'; 
+        display.value = value + '/1'; // إذا كان الرقم عادي نضيف الكسر 1 في الأسفل
       }
     }
 
     function updateHistory() {
       const historyDiv = document.getElementById('history');
       historyDiv.innerHTML = '';
-      history.slice(0, 5).forEach(item => { 
+      history.slice(0, 5).forEach(item => { // عرض آخر 5 عمليات
         const historyItem = document.createElement('p');
         historyItem.textContent = item;
         historyDiv.appendChild(historyItem);
@@ -276,9 +274,9 @@
       document.body.classList.toggle('light-theme');
       const themeButton = document.querySelector('.theme-toggle');
       if (document.body.classList.contains('light-theme')) {
-        themeButton.textContent = '🌞'; 
+        themeButton.textContent = '🌞'; // تغيير الرمز
       } else {
-        themeButton.textContent = '🌙'; 
+        themeButton.textContent = '🌙'; // العودة للرمز الليلي
       }
     }
   </script>
