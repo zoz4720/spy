@@ -1,111 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sign-In with Firebase</title>
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAhLqjAGsAzapUX_5kvJXvWCisOu2zfDa4",
-            authDomain: "abdelrahmanaly-15924.firebaseapp.com",
-            projectId: "abdelrahmanaly-15924",
-            storageBucket: "abdelrahmanaly-15924.firebasestorage.app",
-            messagingSenderId: "637709239029",
-            appId: "1:637709239029:web:44aba1b401adbf118bbbbc",
-            measurementId: "G-QG5DCVGQH6"
-        };
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scientific Calculator</title>
+  <style>
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        // استيراد Firebase 11.1.0
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js';
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f5f5f5;
+      transition: background-color 0.3s, color 0.3s;
+    }
 
-        // تهيئة Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+    .calculator {
+      width: 350px;
+      padding: 20px;
+      background-color: #222;
+      color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      height: 510px; 
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
 
-        // الحصول على زر تسجيل الدخول باستخدام جوجل
-        const googleSignInButton = document.getElementById('google-signin-btn');
+    
+    .display {
+      width: 100%;
+      height: 50px; 
+      background-color: #333;
+      border: none;
+      border-radius: 10px;
+      font-size: 28px;
+      color: white;
+      text-align: right;
+      padding: 10px;
+      margin-bottom: 10px;
+      outline: none;
+    }
 
-        // ربط الحدث مع الزر
-        googleSignInButton.addEventListener('click', () => {
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    // معلومات المستخدم بعد تسجيل الدخول
-                    const user = result.user;
-                    console.log("User signed in: ", user);
-                    alert(`Welcome, ${user.displayName}!`);
-                })
-                .catch((error) => {
-                    // التعامل مع الأخطاء
-                    console.error("Error during sign-in: ", error.message);
-                    alert("Error during sign-in, please try again.");
-                });
-        });
-    </script>
+    /* History */
+    .history {
+      width: 100%;
+      height: 60px; 
+      overflow-y: auto;
+      background-color: #444;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px; 
+    }
 
-    <!-- CSS Styling -->
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+    .history p {
+      margin: 5px 0;
+      color: #bbb;
+    }
 
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-        }
+    
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      grid-auto-rows: 50px; 
+    }
 
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
+    .button {
+      padding: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-        #google-signin-btn {
-            background-color: #4285F4;
-            color: #ffffff;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-        }
+    .button:hover {
+      background-color: #666;
+    }
 
-        #google-signin-btn:hover {
-            background-color: #357ae8;
-        }
+    .button.function {
+      background-color: #555;
+    }
 
-        #google-signin-btn:active {
-            background-color: #2a60b8;
-        }
+    .button.equals {
+      background-color: #28a745;
+    }
 
-        p {
-            margin-top: 20px;
-            color: #555;
-        }
-    </style>
+    .button.clear {
+      background-color: #dc3545;
+    }
+
+    
+    .dark-theme {
+      background-color: #222;
+      color: white;
+    }
+
+    .light-theme {
+      background-color: #f5f5f5;
+      color: #222;
+    }
+
+    .light-theme .calculator {
+      background-color: #fff;
+    }
+
+    .light-theme .display {
+      background-color: #ddd;
+      color: #222;
+    }
+
+    .light-theme .button {
+      background-color: #ddd;
+      color: #222;
+    }
+
+    .light-theme .button:hover {
+      background-color: #bbb;
+    }
+
+    
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #888;
+      border: none;
+      padding: 12px;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background-color: #aaa;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Sign in with Google</h1>
-        <!-- زر تسجيل الدخول باستخدام جوجل -->
-        <button id="google-signin-btn">Sign in with Google</button>
-        <p>By signing in, you agree to our terms and privacy policy.</p>
+  <div class="calculator">
+    <input type="text" id="display" class="display" disabled>
+    <div class="history" id="history"></div>
+    <div class="buttons">
+      <button class="button" onclick="appendValue('7')">7</button>
+      <button class="button" onclick="appendValue('8')">8</button>
+      <button class="button" onclick="appendValue('9')">9</button>
+      <button class="button function" onclick="appendSymbol('÷')">÷</button>
+
+      <button class="button" onclick="appendValue('4')">4</button>
+      <button class="button" onclick="appendValue('5')">5</button>
+      <button class="button" onclick="appendValue('6')">6</button>
+      <button class="button function" onclick="appendSymbol('×')">×</button>
+
+      <button class="button" onclick="appendValue('1')">1</button>
+      <button class="button" onclick="appendValue('2')">2</button>
+      <button class="button" onclick="appendValue('3')">3</button>
+      <button class="button function" onclick="appendSymbol('−')">−</button>
+
+      <button class="button" onclick="appendValue('0')">0</button>
+      <button class="button" onclick="appendValue('.')">.</button>
+      <button class="button equals" onclick="calculate()">=</button>
+      <button class="button function" onclick="appendSymbol('+')">+</button>
+
+      <button class="button function" onclick="appendSymbol('√')">√</button>
+      <button class="button function" onclick="appendSymbol('xʸ')">xʸ</button>
+      <button class="button clear" onclick="clearDisplay()">C</button>
+      <button class="button" onclick="deleteLast()">←</button>
+      <button class="button" onclick="convertToFraction()">Fraction</button>
     </div>
+  </div>
+
+
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+  <script>
+    let history = [];
+
+    function appendValue(value) {
+      const display = document.getElementById('display');
+      display.value += value;
+    }
+
+    function appendSymbol(symbol) {
+      const display = document.getElementById('display');
+      if (symbol === '÷') {
+        display.value += ' ÷ ';
+      } else if (symbol === '×') {
+        display.value += ' × ';
+      } else if (symbol === '−') {
+        display.value += ' − ';
+      } else if (symbol === '+') {
+        display.value += ' + ';
+      } else if (symbol === '√') {
+        display.value += '√';
+      } else if (symbol === 'xʸ') {
+        display.value += '^';
+      }
+    }
+
+    function calculate() {
+      const display = document.getElementById('display');
+      let expression = display.value;
+
+      
+      expression = expression.replace(/÷/g, '/');
+      expression = expression.replace(/×/g, '*');
+      expression = expression.replace(/−/g, '-');
+      expression = expression.replace(/\^/g, ''); 
+
+      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)'); 
+
+      // التعامل مع ضرب الجذور
+      expression = expression.replace(/Math\.sqrt\((.?)\) \ Math\.sqrt\((.*?)\)/g, function(match, p1, p2) {
+        const product = parseFloat(p1) * parseFloat(p2);
+        return 'Math.sqrt(' + product + ')';
+      });
+
+      try {
+        const result = eval(expression);
+        display.value = result;
+        history.unshift(${expression} = ${result}); 
+        updateHistory();
+      } catch {
+        display.value = 'Error';
+      }
+    }
+
+    function clearDisplay() {
+      const display = document.getElementById('display');
+      display.value = '';
+    }
+
+    function deleteLast() {
+      const display = document.getElementById('display');
+      display.value = display.value.slice(0, -1); 
+    }
+
+    function convertToFraction() {
+      const display = document.getElementById('display');
+      let value = display.value;
+      
+      if (value.includes('/')) {
+        const parts = value.split('/');
+        display.value = parseFloat(parts[0]) / parseFloat(parts[1]);
+      } else {
+        display.value = value + '/1'; 
+      }
+    }
+
+    function updateHistory() {
+      const historyDiv = document.getElementById('history');
+      historyDiv.innerHTML = '';
+      history.slice(0, 5).forEach(item => { 
+        const historyItem = document.createElement('p');
+        historyItem.textContent = item;
+        historyDiv.appendChild(historyItem);
+      });
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+      const themeButton = document.querySelector('.theme-toggle');
+      if (document.body.classList.contains('light-theme')) {
+        themeButton.textContent = '🌞'; 
+      } else {
+        themeButton.textContent = '🌙'; 
+      }
+    }
+  </script>
 </body>
 </html>
