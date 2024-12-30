@@ -5,14 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Sign-In with Firebase</title>
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"></script>
-</head>
-<body>
-    <!-- Button to trigger Google Sign-In -->
-    <button id="google-signin-btn">Sign in with Google</button>
-
-    <script>
+    <script type="module">
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAhLqjAGsAzapUX_5kvJXvWCisOu2zfDa4",
@@ -24,29 +17,95 @@
             measurementId: "G-QG5DCVGQH6"
         };
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const provider = new firebase.auth.GoogleAuthProvider();
+        // استيراد Firebase 11.1.0
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js';
 
-        // Get the Google Sign-In button
+        // تهيئة Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // الحصول على زر تسجيل الدخول باستخدام جوجل
         const googleSignInButton = document.getElementById('google-signin-btn');
 
-        // Attach click event to the button
+        // ربط الحدث مع الزر
         googleSignInButton.addEventListener('click', () => {
-            auth.signInWithPopup(provider)
+            signInWithPopup(auth, provider)
                 .then((result) => {
-                    // The signed-in user info
+                    // معلومات المستخدم بعد تسجيل الدخول
                     const user = result.user;
                     console.log("User signed in: ", user);
                     alert(`Welcome, ${user.displayName}!`);
                 })
                 .catch((error) => {
-                    // Handle errors here
+                    // التعامل مع الأخطاء
                     console.error("Error during sign-in: ", error.message);
                     alert("Error during sign-in, please try again.");
                 });
         });
     </script>
+
+    <!-- CSS Styling -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #google-signin-btn {
+            background-color: #4285F4;
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        #google-signin-btn:hover {
+            background-color: #357ae8;
+        }
+
+        #google-signin-btn:active {
+            background-color: #2a60b8;
+        }
+
+        p {
+            margin-top: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sign in with Google</h1>
+        <!-- زر تسجيل الدخول باستخدام جوجل -->
+        <button id="google-signin-btn">Sign in with Google</button>
+        <p>By signing in, you agree to our terms and privacy policy.</p>
+    </div>
 </body>
 </html>
