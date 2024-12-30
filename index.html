@@ -1,181 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advanced Online Learning Platform</title>
-  
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-storage.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-messaging.js"></script>
-
-  <!-- Custom CSS -->
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Arial', sans-serif; background-color: #f7f9fc; color: #333; display: flex; justify-content: center; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-    header { background-color: #0056b3; color: white; padding: 20px; width: 100%; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-    header h1 { font-size: 30px; letter-spacing: 2px; }
-    nav ul { list-style: none; display: flex; justify-content: center; margin-top: 10px; }
-    nav ul li { margin: 0 15px; }
-    nav ul li a { color: white; text-decoration: none; font-size: 18px; font-weight: bold; }
-    nav ul li a:hover { color: #f1c40f; }
-    .container { width: 100%; max-width: 1200px; padding: 30px; box-sizing: border-box; }
-    .course-list { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; }
-    .course { background-color: #ffffff; border-radius: 8px; padding: 20px; width: 45%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .course:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
-    .course h3 { margin-bottom: 15px; font-size: 22px; color: #0056b3; }
-    .course p { font-size: 15px; color: #777; margin-bottom: 20px; }
-    .course button { background-color: #0056b3; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s ease; }
-    .course button:hover { background-color: #00408d; }
-    .course-details { margin-top: 30px; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-    .quiz-container { margin-top: 50px; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-    .quiz-question { font-size: 18px; margin-bottom: 10px; }
-    .quiz-option { margin: 10px 0; }
-    .quiz-container input[type="radio"] { margin-right: 10px; }
-    .quiz-container label { margin-left: 5px; font-size: 16px; }
-    .quiz-container button { background-color: #27ae60; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; }
-    .quiz-container button:hover { background-color: #2e8b57; }
-    footer { background-color: #0056b3; color: white; text-align: center; padding: 15px 0; width: 100%; }
-    footer p { font-size: 14px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In with Firebase</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js"></script>
 </head>
 <body>
+    <!-- Button to trigger Google Sign-In -->
+    <button id="google-signin-btn">Sign in with Google</button>
 
-<header>
-  <h1>Advanced Online Learning Platform</h1>
-  <nav>
-    <ul>
-      <li><a href="#courses">Courses</a></li>
-      <li><a href="#login">Login</a></li>
-      <li><a href="#admin">Admin</a></li>
-    </ul>
-  </nav>
-</header>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhLqjAGsAzapUX_5kvJXvWCisOu2zfDa4",
+            authDomain: "abdelrahmanaly-15924.firebaseapp.com",
+            projectId: "abdelrahmanaly-15924",
+            storageBucket: "abdelrahmanaly-15924.firebasestorage.app",
+            messagingSenderId: "637709239029",
+            appId: "1:637709239029:web:44aba1b401adbf118bbbbc",
+            measurementId: "G-QG5DCVGQH6"
+        };
 
-<div class="container" id="courses">
-  <h2>Explore Our Courses</h2>
-  <div class="course-list" id="course-list">
-    <!-- Courses will be dynamically added here -->
-  </div>
-</div>
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-<!-- Course Details Section -->
-<div class="course-details" id="course-details" style="display: none;">
-  <h2>Course Title</h2>
-  <p>This is the detailed description of the course. Here you can explain the content of the course in detail.</p>
-  <h3>Quiz</h3>
-  <div class="quiz-container" id="quiz-container">
-    <!-- Quiz will be dynamically added here -->
-  </div>
-  <button id="complete-quiz">Submit Quiz</button>
-</div>
+        // Google Sign-In provider
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-<!-- Admin Section -->
-<div class="admin-container" id="admin" style="display: none;">
-  <h2>Admin Panel</h2>
-  <input type="text" id="admin-course-title" placeholder="Course Title">
-  <textarea id="admin-course-description" placeholder="Course Description"></textarea>
-  <input type="file" id="admin-course-video">
-  <button id="admin-upload-course">Upload Course</button>
-  <h3>Grade Assignments</h3>
-  <input type="text" id="admin-assignment-id" placeholder="Assignment ID">
-  <button id="admin-grade-assignment">Grade Assignment</button>
-</div>
+        // Get the Google Sign-In button
+        const googleSignInButton = document.getElementById('google-signin-btn');
 
-<footer>
-  <p>&copy; 2024 Advanced Online Learning Platform</p>
-</footer>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-    authDomain: "who-is-the-spy-51308.firebaseapp.com",
-    databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "who-is-the-spy-51308",
-    storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-    messagingSenderId: "900253646275",
-    appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-    measurementId: "G-NWXDDDRPRH"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  const db = firebase.firestore();
-  const storage = firebase.storage();
-  const auth = firebase.auth();
-
-  // Fetch and display courses
-  db.collection('courses').get().then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      const course = doc.data();
-      const courseDiv = document.createElement('div');
-      courseDiv.className = 'course';
-      courseDiv.innerHTML = `
-        <h3>${course.title}</h3>
-        <p>${course.description}</p>
-        <button onclick="viewCourse('${doc.id}')">View Course</button>
-      `;
-      document.getElementById('course-list').appendChild(courseDiv);
-    });
-  });
-
-  // View course details
-  function viewCourse(courseId) {
-    db.collection('courses').doc(courseId).get().then((doc) => {
-      const course = doc.data();
-      document.getElementById('course-details').style.display = 'block';
-      document.getElementById('course-details').innerHTML = `
-        <h2>${course.title}</h2>
-        <p>${course.description}</p>
-        <h3>Quiz</h3>
-        <div class="quiz-container" id="quiz-container">
-          <!-- Quiz Questions will be dynamically added here -->
-        </div>
-        <button id="complete-quiz">Submit Quiz</button>
-      `;
-    });
-  }
-
-  // Upload a new course (admin)
-  document.getElementById('admin-upload-course').addEventListener('click', () => {
-    const title = document.getElementById('admin-course-title').value;
-    const description = document.getElementById('admin-course-description').value;
-    const videoFile = document.getElementById('admin-course-video').files[0];
-    
-    if (title && description && videoFile) {
-      const storageRef = storage.ref(`courses/${videoFile.name}`);
-      storageRef.put(videoFile).then(() => {
-        storageRef.getDownloadURL().then((url) => {
-          db.collection('courses').add({
-            title: title,
-            description: description,
-            videoUrl: url,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          }).then(() => {
-            alert('Course uploaded successfully');
-          });
+        // Attach click event to the button
+        googleSignInButton.addEventListener('click', () => {
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    // The signed-in user info
+                    const user = result.user;
+                    console.log("User signed in: ", user);
+                    alert(`Welcome, ${user.displayName}!`);
+                })
+                .catch((error) => {
+                    // Handle errors here
+                    console.error("Error during sign-in: ", error.message);
+                    alert("Error during sign-in, please try again.");
+                });
         });
-      });
-    }
-  });
-
-  // Send message functionality (chat)
-  document.getElementById('send-message').addEventListener('click', () => {
-    const message = document.getElementById('chat-input').value;
-    const userId = auth.currentUser.uid;
-
-    db.collection('messages').add({
-      message: message,
-      userId: userId,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    }).then(() => {
-      document.getElementById('chat-input').value = '';
-    });
-  });
-</script>
-
+    </script>
 </body>
 </html>
