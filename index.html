@@ -1,284 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scientific Calculator</title>
-  <style>
-    /* إعدادات الأساس */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رفع وتحويل الفيديو إلى لينك</title>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js"></script>
 
-    body {
-      font-family: 'Arial', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: #f5f5f5;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    .calculator {
-      width: 350px;
-      padding: 20px;
-      background-color: #222;
-      color: #fff;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-      text-align: center;
-      height: 510px; /* زيادة الارتفاع لضمان أن الأزرار كلها تكون داخل الآلة */
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    /* إعدادات العرض */
-    .display {
-      width: 100%;
-      height: 50px; /* تم تقليله */
-      background-color: #333;
-      border: none;
-      border-radius: 10px;
-      font-size: 28px;
-      color: white;
-      text-align: right;
-      padding: 10px;
-      margin-bottom: 10px;
-      outline: none;
-    }
-
-    /* History */
-    .history {
-      width: 100%;
-      height: 60px; /* تم تقليله */
-      overflow-y: auto;
-      background-color: #444;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px; /* تقليل المسافة بين التاريخ والأزرار */
-    }
-
-    .history p {
-      margin: 5px 0;
-      color: #bbb;
-    }
-
-    /* إعدادات الأزرار */
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      grid-auto-rows: 50px; /* التأكد من أن الأزرار كلها بحجم مناسب */
-    }
-
-    .button {
-      padding: 10px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background-color: #444;
-      color: white;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .button:hover {
-      background-color: #666;
-    }
-
-    .button.function {
-      background-color: #555;
-    }
-
-    .button.equals {
-      background-color: #28a745;
-    }
-
-    .button.clear {
-      background-color: #dc3545;
-    }
-
-    /* الوضع الداكن والفاتح */
-    .dark-theme {
-      background-color: #222;
-      color: white;
-    }
-
-    .light-theme {
-      background-color: #f5f5f5;
-      color: #222;
-    }
-
-    .light-theme .calculator {
-      background-color: #fff;
-    }
-
-    .light-theme .display {
-      background-color: #ddd;
-      color: #222;
-    }
-
-    .light-theme .button {
-      background-color: #ddd;
-      color: #222;
-    }
-
-    .light-theme .button:hover {
-      background-color: #bbb;
-    }
-
-    /* زر التبديل بين الوضعين */
-    .theme-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background-color: #888;
-      border: none;
-      padding: 12px;
-      border-radius: 50%;
-      color: white;
-      cursor: pointer;
-      font-size: 18px;
-      transition: background-color 0.3s;
-    }
-
-    .theme-toggle:hover {
-      background-color: #aaa;
-    }
-  </style>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; background: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); width: 50%; margin: auto; }
+        .drop-area { border: 2px dashed #28a745; padding: 20px; cursor: pointer; background: #e9f7ef; margin-bottom: 10px; }
+        .drop-area:hover { background: #d4edda; }
+        input[type="file"] { display: none; }
+        input, button { margin: 10px; padding: 10px; width: 80%; border: 1px solid #ddd; border-radius: 5px; }
+        button { background-color: #28a745; color: white; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        .progress-container { width: 80%; margin: 10px auto; background: #ddd; border-radius: 5px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 10px; background: #28a745; transition: width 0.3s; }
+        .link-container { margin-top: 20px; display: none; }
+        .copy-btn, .share-btn { background: #007bff; padding: 5px 10px; border: none; color: white; cursor: pointer; margin-left: 10px; }
+        .copy-btn:hover, .share-btn:hover { background: #0056b3; }
+        .success-message { color: #28a745; font-weight: bold; display: none; }
+        .video-preview { width: 100%; max-width: 400px; margin-top: 10px; display: none; border-radius: 10px; }
+    </style>
 </head>
 <body>
-  <div class="calculator">
-    <input type="text" id="display" class="display" disabled>
-    <div class="history" id="history"></div>
-    <div class="buttons">
-      <button class="button" onclick="appendValue('7')">7</button>
-      <button class="button" onclick="appendValue('8')">8</button>
-      <button class="button" onclick="appendValue('9')">9</button>
-      <button class="button function" onclick="appendSymbol('÷')">÷</button>
 
-      <button class="button" onclick="appendValue('4')">4</button>
-      <button class="button" onclick="appendValue('5')">5</button>
-      <button class="button" onclick="appendValue('6')">6</button>
-      <button class="button function" onclick="appendSymbol('×')">×</button>
+    <div class="container">
+        <h2>رفع وتحويل الفيديو إلى لينك</h2>
 
-      <button class="button" onclick="appendValue('1')">1</button>
-      <button class="button" onclick="appendValue('2')">2</button>
-      <button class="button" onclick="appendValue('3')">3</button>
-      <button class="button function" onclick="appendSymbol('−')">−</button>
+        <!-- منطقة السحب والإفلات -->
+        <div class="drop-area" onclick="document.getElementById('videoInput').click();">
+            اسحب الفيديو هنا أو اضغط لاختياره
+        </div>
 
-      <button class="button" onclick="appendValue('0')">0</button>
-      <button class="button" onclick="appendValue('.')">.</button>
-      <button class="button equals" onclick="calculate()">=</button>
-      <button class="button function" onclick="appendSymbol('+')">+</button>
+        <input type="file" id="videoInput" accept="video/*">
+        <input type="text" id="customName" placeholder="اختيار اسم اللينك (اختياري)"><br>
+        <button onclick="uploadVideo()">رفع الفيديو</button>
 
-      <button class="button function" onclick="appendSymbol('√')">√</button>
-      <button class="button function" onclick="appendSymbol('xʸ')">xʸ</button>
-      <button class="button clear" onclick="clearDisplay()">C</button>
-      <button class="button" onclick="deleteLast()">←</button>
-      <button class="button" onclick="convertToFraction()">Fraction</button>
+        <!-- شريط التقدم -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <!-- عرض وقت الرفع المتوقع -->
+        <p id="uploadTime" style="color: gray;"></p>
+
+        <!-- عرض الفيديو بعد الرفع -->
+        <video controls class="video-preview" id="videoPreview"></video>
+
+        <!-- عرض اللينك بعد الرفع -->
+        <div class="link-container" id="linkContainer">
+            <p id="linkOutput"></p>
+            <button class="copy-btn" onclick="copyLink()">نسخ اللينك</button>
+            <button class="share-btn" onclick="shareLink()">مشاركة</button>
+        </div>
+
+        <!-- رسالة نجاح -->
+        <p class="success-message" id="successMessage">✅ تم الرفع بنجاح!</p>
     </div>
-  </div>
 
-  <!-- زر التبديل بين الوضعين -->
-  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <script>
+        // 🔥 بيانات Firebase (حط بيانات مشروعك هنا)
+     // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
+  authDomain: "who-is-the-spy-51308.firebaseapp.com",
+  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "who-is-the-spy-51308",
+  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
+  messagingSenderId: "900253646275",
+  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
+  measurementId: "G-NWXDDDRPRH"
+};
+        // 🔥 تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
 
-  <script>
-    let history = [];
+        // دعم السحب والإفلات
+        const dropArea = document.querySelector('.drop-area');
+        dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.style.background = "#d4edda"; });
+        dropArea.addEventListener('dragleave', () => { dropArea.style.background = "#e9f7ef"; });
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.background = "#e9f7ef";
+            document.getElementById('videoInput').files = e.dataTransfer.files;
+        });
 
-    function appendValue(value) {
-      const display = document.getElementById('display');
-      display.value += value;
-    }
+        function uploadVideo() {
+            const videoFile = document.getElementById('videoInput').files[0];
+            const customName = document.getElementById('customName').value || videoFile.name.split('.')[0];
 
-    function appendSymbol(symbol) {
-      const display = document.getElementById('display');
-      if (symbol === '÷') {
-        display.value += ' ÷ ';
-      } else if (symbol === '×') {
-        display.value += ' × ';
-      } else if (symbol === '−') {
-        display.value += ' − ';
-      } else if (symbol === '+') {
-        display.value += ' + ';
-      } else if (symbol === '√') {
-        display.value += '√';
-      } else if (symbol === 'xʸ') {
-        display.value += '^';
-      }
-    }
+            if (!videoFile) {
+                alert("❌ اختر فيديو أولًا!");
+                return;
+            }
 
-    function calculate() {
-      const display = document.getElementById('display');
-      let expression = display.value;
+            const storageRef = storage.ref(`videos/${customName}`);
+            const uploadTask = storageRef.put(videoFile);
+            const startTime = Date.now();
 
-      // تحويل الرموز للأشكال البرمجية
-      expression = expression.replace(/÷/g, '/');
-      expression = expression.replace(/×/g, '*');
-      expression = expression.replace(/−/g, '-');
-      expression = expression.replace(/\^/g, '**'); // الأسس تُحول لـ **
+            uploadTask.on('state_changed',
+                snapshot => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    document.getElementById('progressBar').style.width = progress + "%";
 
-      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)'); // جذر بدون أقواس
+                    // حساب الوقت المتبقي
+                    const elapsedTime = (Date.now() - startTime) / 1000;
+                    const estimatedTime = (elapsedTime / (progress / 100)) - elapsedTime;
+                    document.getElementById('uploadTime').innerText = `⏳ متبقي ${Math.ceil(estimatedTime)} ثانية`;
+                },
+                error => {
+                    console.error("❌ خطأ:", error);
+                    alert("⚠️ فشل الرفع! تأكد من إعدادات Firebase.");
+                },
+                () => {
+                    uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+                        document.getElementById('linkOutput').innerHTML = `<a href="${downloadURL}" target="_blank">${downloadURL}</a>`;
+                        document.getElementById('linkContainer').style.display = "block";
+                        document.getElementById('successMessage').style.display = "block";
 
-      // التعامل مع ضرب الجذور
-      expression = expression.replace(/√(\d+(\.\d+)?)/g, 'Math.sqrt($1)');
-      expression = expression.replace(/Math\.sqrt\((.*?)\) \* Math\.sqrt\((.*?)\)/g, 'Math.sqrt($1 * $2)');
+                        // عرض الفيديو بعد الرفع
+                        const videoPreview = document.getElementById('videoPreview');
+                        videoPreview.src = downloadURL;
+                        videoPreview.style.display = "block";
+                    });
+                }
+            );
+        }
 
-      try {
-        const result = eval(expression);
-        display.value = result;
-        history.unshift(`${expression} = ${result}`); // حفظ العملية في الذاكرة
-        updateHistory();
-      } catch {
-        display.value = 'Error';
-      }
-    }
+        function copyLink() {
+            const link = document.getElementById('linkOutput').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert("✅ تم نسخ اللينك!");
+            }).catch(err => {
+                console.error("❌ فشل النسخ:", err);
+            });
+        }
 
-    function clearDisplay() {
-      const display = document.getElementById('display');
-      display.value = '';
-    }
+        function shareLink() {
+            const link = document.getElementById('linkOutput').textContent;
+            navigator.share ? navigator.share({ title: "رابط الفيديو", url: link }) : alert("🚀 المتصفح لا يدعم المشاركة التلقائية!");
+        }
+    </script>
 
-    function deleteLast() {
-      const display = document.getElementById('display');
-      display.value = display.value.slice(0, -1); // حذف آخر حرف من النص في الشاشة
-    }
-
-    function convertToFraction() {
-      const display = document.getElementById('display');
-      let value = display.value;
-      
-      if (value.includes('/')) {
-        const parts = value.split('/');
-        display.value = parseFloat(parts[0]) / parseFloat(parts[1]);
-      } else {
-        display.value = value + '/1'; // إذا كان الرقم عادي نضيف الكسر 1 في الأسفل
-      }
-    }
-
-    function updateHistory() {
-      const historyDiv = document.getElementById('history');
-      historyDiv.innerHTML = '';
-      history.slice(0, 5).forEach(item => { // عرض آخر 5 عمليات
-        const historyItem = document.createElement('p');
-        historyItem.textContent = item;
-        historyDiv.appendChild(historyItem);
-      });
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle('light-theme');
-      const themeButton = document.querySelector('.theme-toggle');
-      if (document.body.classList.contains('light-theme')) {
-        themeButton.textContent = '🌞'; // تغيير الرمز
-      } else {
-        themeButton.textContent = '🌙'; // العودة للرمز الليلي
-      }
-    }
-  </script>
 </body>
 </html>
+
