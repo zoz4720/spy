@@ -134,6 +134,63 @@
             border-radius: 8px;
             margin: 1rem 0;
         }
+        /* Advanced Animations */
+    @keyframes cardShake {
+        0% { transform: rotate(0deg); }
+        25% { transform: rotate(5deg); }
+        50% { transform: rotate(-5deg); }
+        75% { transform: rotate(5deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    @keyframes glow {
+        0% { filter: drop-shadow(0 0 5px var(--primary)); }
+        50% { filter: drop-shadow(0 0 20px var(--primary)); }
+        100% { filter: drop-shadow(0 0 5px var(--primary)); }
+    }
+
+    /* Advanced Card Styles */
+    .card.wild {
+        background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff, #ffff00);
+        background-size: 600% 600%;
+        animation: gradientShift 3s ease infinite;
+    }
+
+    /* Player Avatars */
+    .avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid white;
+        position: absolute;
+        transition: all 0.3s ease;
+    }
+
+    /* Game Log */
+    .game-log {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    /* Color Picker */
+    .color-picker {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        z-index: 1000;
+    }
     </style>
 </head>
 <body>
@@ -171,7 +228,52 @@
             <li>📢 Say "UNO" when last card!</li>
         </ul>
     </div>
-
+    <div class="color-picker" id="colorPicker">
+        <div class="color-option red" onclick="selectColor('red')"></div>
+        <div class="color-option blue" onclick="selectColor('blue')"></div>
+        <div class="color-option green" onclick="selectColor('green')"></div>
+        <div class="color-option yellow" onclick="selectColor('yellow')"></div>
+    </div>
+    
+    <div class="game-log" id="gameLog"></div>
+    
+    <!-- Add AI Settings -->
+    <div class="container" id="aiSettings">
+        <h3>AI Players</h3>
+        <div id="aiConfigurations">
+            <div class="ai-config">
+                <select class="ai-difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <button class="add-ai">Add AI</button>
+            </div>
+        </div>
+    </div>
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="profile-panel">
+        <div class="avatar-editor">
+            <canvas id="avatarCanvas"></canvas>
+            <input type="color" id="avatarColor">
+        </div>
+        <div class="stats">
+            <h3>Rank: <span id="playerRank">Novice</span></h3>
+            <div class="xp-bar"><div class="xp-progress"></div></div>
+        </div>
+    </div>
+    
+    <div class="store-container">
+        <div class="currency-display">
+            <span class="coins">🪙 150</span>
+            <span class="gems">💎 25</span>
+        </div>
+        <div class="card-skins-grid"></div>
+    </div>
+    
     <script>
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
@@ -239,7 +341,468 @@ const firebaseConfig = {
                 this.discardPile.push(this.deck.pop());
             }
         }
+        class AuthManager {
+    constructor() {
+        this.providers = {
+            google: new firebase.auth.GoogleAuthProvider(),
+            facebook: new firebase.auth.FacebookAuthProvider(),
+            twitter: new firebase.auth.TwitterAuthProvider()
+        };
+    }
 
+    async linkAccount(providerType) {
+        await currentUser.linkWithPopup(this.providers[providerType]);
+        await this.updateUserProfile();
+    }
+
+    async updateUserProfile(avatarData) {
+        const storageRef = firebase.storage().ref(`avatars/${currentUser.uid}`);
+        await storageRef.putString(avatarData, 'data_url');
+        const avatarURL = await storageRef.getDownloadURL();
+        
+        await db.collection('users').doc(currentUser.uid).update({
+            avatar: avatarURL,
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+// 2. Complex AI System
+class AdvancedAI {
+    constructor(difficulty = 'medium') {
+        this.difficulty = difficulty;
+        this.memory = new Map();
+    }
+
+    makeDecision(gameState) {
+        switch(this.difficulty) {
+            case 'easy':
+                return this.randomMove(gameState);
+            case 'medium':
+                return this.probabilisticMove(gameState);
+            case 'hard':
+                return this.strategicMove(gameState);
+            case 'expert':
+                return this.predictiveMove(gameState);
+        }
+    }
+
+    predictiveMove(gameState) {
+        const opponentHandSizes = gameState.players
+            .filter(p => !p.isAI)
+            .map(p => p.hand.length);
+        
+        const dangerThreshold = Math.min(...opponentHandSizes) <= 2;
+        const preferredColor = this.calculateColorDominance(gameState);
+        
+        return this.analyzeMoveTree(gameState, 3, dangerThreshold, preferredColor);
+    }
+
+    analyzeMoveTree(state, depth, dangerMode, preferredColor) {
+        // Implement minimax algorithm with alpha-beta pruning
+    }
+}
+
+// 3. Matchmaking Service
+class Matchmaker {
+    constructor() {
+        this.queue = [];
+        this.rankings = new Map();
+        this.lobbies = new Set();
+    }
+
+    async enterQueue(player) {
+        this.queue.push(player);
+        await this.tryCreateMatches();
+    }
+
+    async tryCreateMatches() {
+        while (this.queue.length >= 2) {
+            const players = this.queue.splice(0, 4);
+            const roomCode = generateRoomCode();
+            await this.createRankedRoom(players, roomCode);
+            this.updatePlayerRatings(players);
+        }
+    }
+
+    calculateEloChanges(winner, loser) {
+        // Implement ELO rating system
+    }
+}
+
+// 4. Replay System
+class GameRecorder {
+    constructor() {
+        this.events = [];
+        this.startTime = Date.now();
+    }
+
+    record(eventType, data) {
+        this.events.push({
+            type: eventType,
+            data,
+            timestamp: Date.now() - this.startTime
+        });
+    }
+
+    export() {
+        return {
+            meta: {
+                duration: Date.now() - this.startTime,
+                players: this.players,
+                version: '1.0'
+            },
+            events: this.events
+        };
+    }
+
+    async saveReplay() {
+        const replayData = this.export();
+        await db.collection('replays').add({
+            ...replayData,
+            players: replayData.meta.players.map(p => p.uid),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+// 5. In-Game Economy
+class EconomyManager {
+    constructor() {
+        this.currencies = {
+            coins: 0,
+            gems: 0
+        };
+        this.inventory = [];
+    }
+
+    async purchaseItem(itemId) {
+        const item = await db.collection('storeItems').doc(itemId).get();
+        if (this.currencies[item.data().currency] >= item.data().price) {
+            this.currencies[item.data().currency] -= item.data().price;
+            this.inventory.push(itemId);
+            await this.updatePlayerWallet();
+            return true;
+        }
+        return false;
+    }
+
+    awardMatchRewards(placement) {
+        const rewards = this.calculateRewards(placement);
+        this.currencies.coins += rewards.coins;
+        this.currencies.gems += rewards.gems;
+        this.updatePlayerWallet();
+    }
+}
+
+// 6. Particle System
+class ParticleEngine {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+    }
+
+    createExplosion(x, y, color) {
+        for (let i = 0; i < 50; i++) {
+            this.particles.push({
+                x,
+                y,
+                color,
+                radius: Math.random() * 3 + 1,
+                velocity: {
+                    x: (Math.random() - 0.5) * 5,
+                    y: (Math.random() - 0.5) * 5
+                },
+                alpha: 1
+            });
+        }
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.particles.forEach((particle, index) => {
+            particle.x += particle.velocity.x;
+            particle.y += particle.velocity.y;
+            particle.alpha -= 0.01;
+            
+            this.ctx.save();
+            this.ctx.globalAlpha = particle.alpha;
+            this.ctx.beginPath();
+            this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            this.ctx.fillStyle = particle.color;
+            this.ctx.fill();
+            this.ctx.restore();
+            
+            if (particle.alpha <= 0) {
+                this.particles.splice(index, 1);
+            }
+        });
+    }
+}
+
+// 7. Tournament Bracket System
+class TournamentBracket {
+    constructor(participants) {
+        this.rounds = [];
+        this.currentRound = 0;
+        this.generateInitialBracket(participants);
+    }
+
+    generateInitialBracket(players) {
+        // Implement double-elimination bracket logic
+        const bracketSize = Math.pow(2, Math.ceil(Math.log2(players.length)));
+        this.rounds = new Array(Math.log2(bracketSize) * 2 - 1)
+            .fill()
+            .map(() => []);
+    }
+
+    recordMatchResult(matchId, winnerId) {
+        // Update bracket progression
+    }
+}
+
+// 8. Advanced Card Effects
+class CardEffectManager {
+    constructor() {
+        this.activeEffects = [];
+    }
+
+    applyEffect(card, gameState) {
+        switch(card.value) {
+            case 'reverse':
+                this.handleReverseEffect(gameState);
+                break;
+            case 'skip':
+                this.handleSkipEffect(gameState);
+                break;
+            case 'draw2':
+                this.handleDrawEffect(gameState, 2);
+                break;
+            case 'wild4':
+                this.handleWildEffect(gameState, 4);
+                break;
+        }
+    }
+
+    handleWildEffect(gameState, drawCount) {
+        gameState.pendingDraw += drawCount;
+        gameState.forceColorSelection = true;
+    }
+}
+
+// 9. Spectator Mode
+class SpectatorManager {
+    constructor() {
+        this.spectators = new Set();
+    }
+
+    async addSpectator(userId) {
+        const specRef = db.collection('spectators').doc(userId);
+        await specRef.set({
+            watching: this.roomId,
+            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+
+    broadcastSpectatorView() {
+        // Send compressed game state to spectators
+        setInterval(async () => {
+            const gameState = await this.getCurrentGameState();
+            await db.collection('spectators').doc(this.roomId).update({
+                state: compressGameState(gameState),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }, 1000);
+    }
+}
+
+// 10. Advanced Sound Engine
+class AudioController {
+    constructor() {
+        this.sounds = new Map();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.gainNode = this.audioContext.createGain();
+    }
+
+    async loadSounds() {
+        const soundList = {
+            draw: 'sounds/draw.mp3',
+            playCard: 'sounds/cardPlace.mp3',
+            uno: 'sounds/unoAlert.mp3',
+            victory: 'music/victoryTheme.mp3'
+        };
+
+        for (const [name, path] of Object.entries(soundList)) {
+            const response = await fetch(path);
+            const arrayBuffer = await response.arrayBuffer();
+            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+            this.sounds.set(name, audioBuffer);
+        }
+    }
+
+    playSound(name, options = {}) {
+        const source = this.audioContext.createBufferSource();
+        source.buffer = this.sounds.get(name);
+        
+        if (options.pitch) {
+            source.playbackRate.value = options.pitch;
+        }
+        
+        source.connect(this.gainNode);
+        this.gainNode.connect(this.audioContext.destination);
+        source.start(0);
+    }
+}
+
+// 11. Performance Monitor
+class PerformanceTracker {
+    constructor() {
+        this.metrics = {
+            fps: 0,
+            latency: 0,
+            memory: 0
+        };
+    }
+
+    startMonitoring() {
+        setInterval(() => this.calculateFPS(), 1000);
+        this.recordMemoryUsage();
+    }
+
+    calculateFPS() {
+        let frameCount = 0;
+        const checkFPS = () => {
+            frameCount++;
+            requestAnimationFrame(checkFPS);
+        };
+        checkFPS();
+        setTimeout(() => this.metrics.fps = frameCount, 1000);
+    }
+}
+
+// 12. Dynamic Theme Engine
+class ThemeManager {
+    constructor() {
+        this.themes = {
+            default: {
+                '--primary': '#E53935',
+                '--background': '#f0f2f5'
+            },
+            dark: {
+                '--primary': '#7B1FA2',
+                '--background': '#2d2d2d'
+            },
+            ocean: {
+                '--primary': '#2196F3',
+                '--background': '#e1f5fe'
+            }
+        };
+    }
+
+    applyTheme(themeName) {
+        const theme = this.themes[themeName];
+        Object.entries(theme).forEach(([varName, value]) => {
+            document.documentElement.style.setProperty(varName, value);
+        });
+    }
+}
+
+// 13. Cheat Detection System
+class AntiCheat {
+    constructor() {
+        this.validMoves = new Map();
+    }
+
+    validateMove(playerId, move) {
+        const valid = this.checkMoveValidity(move);
+        if (!valid) {
+            this.flagPlayer(playerId);
+            return false;
+        }
+        return true;
+    }
+
+    checkMoveValidity(move) {
+        // Implement move validation against game rules
+        // Check timing, possible card plays, etc.
+        return true;
+    }
+
+    flagPlayer(playerId) {
+        db.collection('reports').add({
+            playerId,
+            reason: 'Suspicious activity',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+// 14. Dynamic Localization
+class LocalizationManager {
+    constructor() {
+        this.languages = {};
+        this.currentLang = 'en';
+    }
+
+    async loadLanguage(langCode) {
+        const response = await fetch(`locales/${langCode}.json`);
+        this.languages[langCode] = await response.json();
+    }
+
+    t(key) {
+        return this.languages[this.currentLang][key] || key;
+    }
+
+    updateUI() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.textContent = this.t(el.dataset.i18n);
+        });
+    }
+}
+
+// 15. Cross-Device Sync
+class SyncService {
+    constructor() {
+        this.syncQueue = [];
+        this.isOnline = true;
+    }
+
+    checkConnectivity() {
+        setInterval(() => {
+            this.isOnline = navigator.onLine;
+            if (this.isOnline) this.flushQueue();
+        }, 5000);
+    }
+
+    queueAction(action) {
+        this.syncQueue.push(action);
+        if (this.isOnline) this.flushQueue();
+    }
+
+    async flushQueue() {
+        while (this.syncQueue.length > 0) {
+            const action = this.syncQueue.shift();
+            await firebase.functions().httpsCallable(action.type)(action.data);
+        }
+    }
+}
+
+// Initialize all systems
+const authManager = new AuthManager();
+const matchmaker = new Matchmaker();
+const particleEngine = new ParticleEngine('particleCanvas');
+const audioController = new AudioController();
+const antiCheat = new AntiCheat();
+const localization = new LocalizationManager();
+
+// Start core systems
+particleEngine.animate();
+audioController.loadSounds();
+performanceTracker.startMonitoring();
+localization.loadLanguage('en').then(() => localization.updateUI());
         auth.signInAnonymously().then(user => {
             currentUser = user;
         });
@@ -345,7 +908,301 @@ const firebaseConfig = {
             document.getElementById('authContainer').classList.remove('active');
             document.getElementById('lobbyContainer').classList.add('active');
         }
+        class Game {
+    constructor() {
+        // ... existing code ...
+        this.unoCallers = new Set();
+        this.pendingDraw = 0;
+        this.stackedDraw = 0;
+        this.chatHistory = [];
+        this.aiPlayers = [];
+    }
 
+    // Advanced Card Validation
+    validateMove(card, topCard, currentColor) {
+        if (card.color === 'black') return true;
+        if (card.color === currentColor) return true;
+        return card.value === topCard.value;
+    }
+
+    // Wild Card Handling
+    async handleWild(card, selectedColor) {
+        await roomRef.update({
+            'currentGame.currentColor': selectedColor,
+            'currentGame.discardPile': firebase.firestore.FieldValue.arrayUnion({
+                ...card,
+                color: selectedColor
+            })
+        });
+    }
+
+    // Draw Card Stacking
+    async handleDrawStacking(card) {
+        if (card.value === 'draw2') {
+            this.stackedDraw += 2;
+        } else if (card.value === 'wild4') {
+            this.stackedDraw += 4;
+        }
+        
+        await roomRef.update({
+            'currentGame.stackedDraw': this.stackedDraw
+        });
+    }
+
+    // UNO Call Validation
+    async checkUnoCall(player) {
+        if (player.hand.length !== 1) return;
+        if (!this.unoCallers.has(player.uid)) {
+            await this.penalizePlayer(player, 2);
+        }
+    }
+
+    // AI Logic
+    async processAITurn() {
+        const ai = this.players.find(p => p.isAI && p.uid === this.currentPlayer);
+        if (!ai) return;
+
+        const validMoves = ai.hand.filter(card => 
+            this.validateMove(card, this.discardPile[0], this.currentColor)
+        );
+
+        // AI Decision Making
+        let selectedCard;
+        if (validMoves.length > 0) {
+            // Prefer special cards
+            selectedCard = validMoves.find(c => specialCards.includes(c.value)) || validMoves[0];
+            
+            // Wild card color selection logic
+            if (selectedCard.color === 'black') {
+                const colorCounts = ai.hand.reduce((acc, card) => {
+                    acc[card.color] = (acc[card.color] || 0) + 1;
+                    return acc;
+                }, {});
+                const selectedColor = Object.entries(colorCounts)
+                    .sort((a, b) => b[1] - a[1])[0][0];
+                await this.handleWild(selectedCard, selectedColor);
+            }
+            
+            await this.playCard(ai, selectedCard);
+        } else {
+            await this.drawCard(ai);
+            const newCard = ai.hand[ai.hand.length - 1];
+            if (this.validateMove (newCard, ...) ) {
+                await this.playCard(ai, newCard);
+            }
+        }
+    }
+
+    // Penalty System
+    async penalizePlayer(player, count) {
+        const newCards = this.deck.splice(0, count);
+        await roomRef.collection('players').doc(player.uid).update({
+            hand: firebase.firestore.FieldValue.arrayUnion(...newCards)
+        });
+    }
+}
+
+// Extended Firebase Class
+class FirebaseManager {
+    constructor() {
+        this.roomSubscriptions = new Map();
+        this.chatSubscriptions = new Map();
+    }
+
+    // Real-time Chat
+    async sendChatMessage(message) {
+        await roomRef.collection('chat').add({
+            sender: currentUser.uid,
+            text: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+
+    // Connection Monitoring
+    setupPresence() {
+        const presenceRef = db.ref('status/' + currentUser.uid);
+        const connectedRef = db.ref('.info/connected');
+
+        connectedRef.on('value', (snap) => {
+            if (snap.val()) {
+                presenceRef.onDisconnect().set({
+                    state: 'offline',
+                    lastChanged: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    presenceRef.set({
+                        state: 'online',
+                        lastChanged: firebase.database.ServerValue.TIMESTAMP
+                    });
+                });
+            }
+        });
+    }
+
+    // Security Rules Helper
+    async validateMove(move) {
+        const idToken = await currentUser.getIdToken();
+        const response = await fetch('/validateMove', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify(move)
+        });
+        return response.json();
+    }
+}
+
+// Advanced UI Controller
+class UIController {
+    constructor() {
+        this.cardElements = new Map();
+        this.audioElements = {
+            draw: new Audio('sounds/draw.mp3'),
+            play: new Audio('sounds/play.mp3'),
+            uno: new Audio('sounds/uno.mp3')
+        };
+    }
+
+    // Card Animation System
+    animateCard(cardId, animationName) {
+        const card = this.cardElements.get(cardId);
+        card.style.animation = `${animationName} 0.5s ease`;
+        card.addEventListener('animationend', () => {
+            card.style.animation = '';
+        }, {once: true});
+    }
+
+    // 3D Card Flip
+    flipCard(cardElement, face) {
+        cardElement.style.transform = face === 'front' 
+            ? 'rotateY(0deg)'
+            : 'rotateY(180deg)';
+    }
+
+    // Dynamic Position Calculator
+    calculateHandPosition(index, total) {
+        const angle = (index - (total-1)/2) * 15;
+        const yOffset = Math.abs(angle) * 2;
+        return `transform: rotate(${angle}deg) translateY(${yOffset}px)`;
+    }
+
+    // Advanced Color Picker
+    showColorPicker() {
+        const picker = document.getElementById('colorPicker');
+        picker.style.display = 'grid';
+        setTimeout(() => {
+            picker.style.opacity = '1';
+            picker.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 10);
+    }
+}
+
+// Game Statistics System
+class StatisticsTracker {
+    constructor() {
+        this.gamesPlayed = 0;
+        this.cardsPlayed = 0;
+        this.specialCardsUsed = 0;
+    }
+
+    recordMove(card) {
+        this.cardsPlayed++;
+        if (specialCards.includes(card.value)) {
+            this.specialCardsUsed++;
+        }
+    }
+
+    generateReport() {
+        return {
+            winRate: (this.wins / this.gamesPlayed) * 100,
+            avgGameTime: this.totalGameTime / this.gamesPlayed,
+            favoriteCard: this.mostUsedCard
+        };
+    }
+}
+
+// Tournament System
+class TournamentManager {
+    constructor() {
+        this.currentRound = 0;
+        this.scores = new Map();
+    }
+
+    startTournament(players) {
+        this.players = players;
+        this.generateBrackets();
+    }
+
+    generateBrackets() {
+        // Implementation of tournament bracket logic
+    }
+
+    recordMatchResults(winner, loser) {
+        this.scores.set(winner, (this.scores.get(winner) || 0) + 3);
+    }
+}
+
+// Add these new systems to main game initialization
+const firebaseManager = new FirebaseManager();
+const statsTracker = new StatisticsTracker();
+const tournamentManager = new TournamentManager();
+const uiController = new UIController();
+
+// Additional Firebase Cloud Functions (to be deployed separately)
+// These handle secure game logic validation
+exports.validateMove = functions.firestore
+    .document('rooms/{roomId}/moves/{moveId}')
+    .onCreate(async (snap, context) => {
+        const move = snap.data();
+        const gameState = await getGameState(move.roomId);
+
+        if (!validateMoveLogic(move, gameState)) {
+            await snap.ref.delete();
+            return logCheatAttempt(move.playerId);
+        }
+
+        return processValidMove(move, gameState);
+    });
+
+// Voice Chat Integration (WebRTC)
+class VoiceChat {
+    constructor() {
+        this.peerConnection = null;
+        this.dataChannel = null;
+    }
+
+    async init() {
+        this.peerConnection = new RTCPeerConnection();
+        this.dataChannel = this.peerConnection.createDataChannel('chat');
+        this.setupEventListeners();
+    }
+
+    async connect() {
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+        // Exchange ICE candidates via Firebase
+    }
+}
+
+// Card Skinning System
+class CardSkinManager {
+    constructor() {
+        this.currentSkin = 'classic';
+        this.skins = {
+            'classic': 'skins/classic/',
+            'dark': 'skins/dark/',
+            'custom': 'skins/custom/'
+        };
+    }
+
+    applySkin(skinName) {
+        document.documentElement.style.setProperty(
+            '--card-back-image',
+            `url('${this.skins[skinName]}back.png')`
+        );
+    }
+}
         // Initialize game
         document.getElementById('gameContainer').style.display = 'none';
     </script>
