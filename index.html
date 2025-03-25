@@ -1,186 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UNO Online</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
-        :root {
-            --primary: #E53935;
-            --secondary: #1E88E5;
-            --background: #f0f2f5;
-            --card-width: 120px;
-            --card-height: 180px;
+      :root {
+        --primary: #e53935;
+        --secondary: #1e88e5;
+        --background: #f0f2f5;
+        --card-width: 120px;
+        --card-height: 180px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      body {
+        background: var(--background);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 1rem;
+        transition: transform 0.3s ease;
+        display: none;
+        width: 100%;
+        max-width: 800px;
+      }
+
+      .container.active {
+        display: block;
+        animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
+        to {
+          transform: translateY(0);
+          opacity: 1;
         }
+      }
 
-        body {
-            background: var(--background);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
+      .game-container {
+        display: none;
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        min-height: 600px;
+        background: #4caf50;
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
 
-        .container {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin: 1rem;
-            transition: transform 0.3s ease;
-            display: none;
-        }
-
-        .container.active {
-            display: block;
-            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .game-container {
-            display: none;
-            position: relative;
-            width: 100%;
-            max-width: 1200px;
-            min-height: 600px;
-        }
-
-        .card {
-            width: var(--card-width);
-            height: var(--card-height);
-            border-radius: 12px;
-            border: 2px solid white;
-            position: absolute;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .card:hover {
-            transform: translateY(-10px) scale(1.05);
-            z-index: 100;
-        }
-
-        .discard-pile {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .player-hand {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-        }
-
-        .rules-panel {
-            position: fixed;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 260px;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        button:hover {
-            filter: brightness(1.1);
-            transform: translateY(-2px);
-        }
-
-        .room-code {
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            background: #f0f0f0;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-        /* Advanced Animations */
-    @keyframes cardShake {
-        0% { transform: rotate(0deg); }
-        25% { transform: rotate(5deg); }
-        50% { transform: rotate(-5deg); }
-        75% { transform: rotate(5deg); }
-        100% { transform: rotate(0deg); }
-    }
-
-    @keyframes glow {
-        0% { filter: drop-shadow(0 0 5px var(--primary)); }
-        50% { filter: drop-shadow(0 0 20px var(--primary)); }
-        100% { filter: drop-shadow(0 0 5px var(--primary)); }
-    }
-
-    /* Advanced Card Styles */
-    .card.wild {
-        background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff, #ffff00);
-        background-size: 600% 600%;
-        animation: gradientShift 3s ease infinite;
-    }
-
-    /* Player Avatars */
-    .avatar {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        border: 3px solid white;
+      .card {
+        width: var(--card-width);
+        height: var(--card-height);
+        border-radius: 12px;
+        border: 4px solid white;
         position: absolute;
-        transition: all 0.3s ease;
-    }
-
-    /* Game Log */
-    .game-log {
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        background: rgba(0,0,0,0.8);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
         color: white;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        user-select: none;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      .card:hover {
+        transform: translateY(-10px) scale(1.05);
+        z-index: 100;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .card.red {
+        background: #e53935;
+      }
+      .card.blue {
+        background: #1e88e5;
+      }
+      .card.green {
+        background: #43a047;
+      }
+      .card.yellow {
+        background: #fdd835;
+        color: #333;
+      }
+      .card.black {
+        background: #212121;
+      }
+
+      .discard-pile {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+      }
+
+      .player-hand {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        z-index: 20;
+      }
+
+      .rules-panel {
+        position: fixed;
+        left: 20px;
+        top: 20px;
+        width: 260px;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 600;
+        margin: 0.5rem 0;
+      }
+
+      button:hover {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .room-code {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        background: #f0f0f0;
         padding: 1rem;
         border-radius: 8px;
-        max-height: 200px;
-        overflow-y: auto;
-    }
+        margin: 1rem 0;
+        font-family: monospace;
+        text-align: center;
+      }
 
-    /* Color Picker */
-    .color-picker {
+      input {
+        padding: 0.8rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        width: 100%;
+        font-size: 1rem;
+      }
+
+      /* Player areas */
+      .player-area {
+        position: absolute;
+        width: 150px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 0.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .player-area.top {
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .player-area.left {
+        top: 50%;
+        left: 20px;
+        transform: translateY(-50%);
+      }
+      .player-area.right {
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+      }
+
+      .player-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--secondary);
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      /* Game controls */
+      .game-controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      /* Current player indicator */
+      .current-player {
+        animation: glow 1.5s infinite;
+        border: 3px solid gold;
+      }
+
+      @keyframes glow {
+        0% {
+          box-shadow: 0 0 5px var(--primary);
+        }
+        50% {
+          box-shadow: 0 0 20px var(--primary);
+        }
+        100% {
+          box-shadow: 0 0 5px var(--primary);
+        }
+      }
+
+      /* UNO button */
+      .uno-button {
+        position: absolute;
+        bottom: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ff5722;
+        padding: 0.8rem 2rem;
+        border-radius: 30px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        z-index: 30;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Color picker */
+      .color-picker {
         display: none;
         position: fixed;
         top: 50%;
@@ -189,1022 +287,1108 @@
         background: white;
         padding: 2rem;
         border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         z-index: 1000;
-    }
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .color-option {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 4px solid white;
+        transition: all 0.3s ease;
+      }
+
+      .color-option:hover {
+        transform: scale(1.1);
+      }
+
+      .color-option.red {
+        background: #e53935;
+      }
+      .color-option.blue {
+        background: #1e88e5;
+      }
+      .color-option.green {
+        background: #43a047;
+      }
+      .color-option.yellow {
+        background: #fdd835;
+      }
+
+      /* Game log */
+      .game-log {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 1rem;
+        border-radius: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        width: 250px;
+        font-size: 0.9rem;
+      }
+
+      .log-entry {
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.5rem;
+      }
+
+      /* Loading overlay */
+      #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        display: none;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .rules-panel,
+        .game-log {
+          display: none;
+        }
+
+        .card {
+          width: 80px;
+          height: 120px;
+          font-size: 1.8rem;
+        }
+
+        .player-area {
+          width: 100px;
+          font-size: 0.8rem;
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container active" id="authContainer">
-        <h1>UNO Online</h1>
-        <div id="createRoomSection">
-            <button onclick="createRoom()">Create New Room</button>
-        </div>
-        <div style="margin: 2rem 0; text-align: center;">OR</div>
-        <div id="joinRoomSection">
-            <input type="text" id="roomCodeInput" placeholder="Enter Room Code">
-            <button onclick="joinRoom()">Join Room</button>
-        </div>
+      <h1>UNO Online</h1>
+      <div style="text-align: center; margin-bottom: 2rem">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/UNO_Logo.svg/1200px-UNO_Logo.svg.png"
+          alt="UNO Logo"
+          style="height: 100px; margin-bottom: 1rem"
+        />
+        <p>Play the classic card game with official rules!</p>
+      </div>
+      <div id="createRoomSection">
+        <button onclick="createRoom()">Create New Room</button>
+      </div>
+      <div
+        style="
+          margin: 2rem 0;
+          text-align: center;
+          font-weight: bold;
+          color: #666;
+        "
+      >
+        OR
+      </div>
+      <div id="joinRoomSection">
+        <input
+          type="text"
+          id="roomCodeInput"
+          placeholder="Enter Room Code"
+          style="text-align: center; font-size: 1.2rem"
+        />
+        <button onclick="joinRoom()">Join Room</button>
+      </div>
     </div>
 
     <div class="container" id="lobbyContainer">
-        <h2>Room Code: <span id="roomCodeDisplay" class="room-code"></span></h2>
-        <div id="playersList" style="margin: 1rem 0;"></div>
-        <button id="readyButton" onclick="toggleReady()" style="display: none;">Ready Up</button>
+      <h2>Room Code: <span id="roomCodeDisplay" class="room-code"></span></h2>
+      <div id="lobbyStatus">Waiting for more players (0/4)</div>
+      <div
+        id="playersList"
+        style="
+          margin: 1rem 0;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1rem;
+        "
+      ></div>
+      <div style="text-align: center; margin-top: 2rem">
+        <button id="readyButton" onclick="toggleReady()" style="display: none">
+          Ready Up
+        </button>
+        <button
+          id="startButton"
+          onclick="startGameManually()"
+          style="display: none; background: var(--secondary)"
+        >
+          Start Game
+        </button>
+        <button onclick="leaveRoom()" style="background: #666">
+          Leave Room
+        </button>
+      </div>
     </div>
 
     <div class="game-container" id="gameContainer">
-        <div class="discard-pile" id="discardPile"></div>
-        <div class="player-hand" id="playerHand"></div>
+      <div class="player-area top" id="topPlayer">
+        <div class="player-avatar">P1</div>
+        <div class="player-name">Player 1</div>
+        <div class="player-cards">7 cards</div>
+      </div>
+      <div class="player-area left" id="leftPlayer">
+        <div class="player-avatar">P2</div>
+        <div class="player-name">Player 2</div>
+        <div class="player-cards">7 cards</div>
+      </div>
+      <div class="player-area right" id="rightPlayer">
+        <div class="player-avatar">P3</div>
+        <div class="player-name">Player 3</div>
+        <div class="player-cards">7 cards</div>
+      </div>
+
+      <div class="discard-pile" id="discardPile"></div>
+      <div class="player-hand" id="playerHand"></div>
+
+      <button
+        class="uno-button"
+        id="unoButton"
+        onclick="callUno()"
+        style="display: none"
+      >
+        UNO!
+      </button>
+
+      <div class="game-controls">
+        <button onclick="drawCard()">Draw Card</button>
+        <button id="endTurnButton" onclick="endTurn()" disabled>
+          End Turn
+        </button>
+        <button onclick="showGameMenu()">Menu</button>
+      </div>
     </div>
 
     <div class="rules-panel">
-        <h3>Game Rules</h3>
-        <ul style="list-style: none; margin-top: 1rem;">
-            <li>🎯 Match color or number</li>
-            <li>🌈 Wild cards change color</li>
-            <li>➕ Draw cards force others to draw</li>
-            <li>🔄 Reverse changes turn order</li>
-            <li>🚫 Skip skips next player</li>
-            <li>📢 Say "UNO" when last card!</li>
-        </ul>
+      <h3>Official UNO Rules</h3>
+      <ul style="list-style: none; margin-top: 1rem">
+        <li>🎯 Match color or number/symbol</li>
+        <li>🌈 Wild cards let you choose any color</li>
+        <li>➕ +2 and +4 make next player draw cards</li>
+        <li>🔄 Reverse changes turn direction</li>
+        <li>⏭ Skip makes next player lose turn</li>
+        <li>📢 Say "UNO!" when you have 1 card left</li>
+        <li>💥 +4 can be challenged if you suspect cheating</li>
+        <li>🔄 Reverse with 2 players acts like Skip</li>
+        <li>🃏 Stack +2/+4 cards to combine penalties</li>
+      </ul>
     </div>
+
     <div class="color-picker" id="colorPicker">
-        <div class="color-option red" onclick="selectColor('red')"></div>
-        <div class="color-option blue" onclick="selectColor('blue')"></div>
-        <div class="color-option green" onclick="selectColor('green')"></div>
-        <div class="color-option yellow" onclick="selectColor('yellow')"></div>
+      <h3 style="grid-column: 1 / -1; text-align: center; margin-bottom: 1rem">
+        Choose a color
+      </h3>
+      <div class="color-option red" onclick="selectColor('red')"></div>
+      <div class="color-option blue" onclick="selectColor('blue')"></div>
+      <div class="color-option green" onclick="selectColor('green')"></div>
+      <div class="color-option yellow" onclick="selectColor('yellow')"></div>
     </div>
-    
-    <div class="game-log" id="gameLog"></div>
-    
-    <!-- Add AI Settings -->
-    <div class="container" id="aiSettings">
-        <h3>AI Players</h3>
-        <div id="aiConfigurations">
-            <div class="ai-config">
-                <select class="ai-difficulty">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
-                <button class="add-ai">Add AI</button>
-            </div>
-        </div>
+
+    <div class="game-log" id="gameLog">
+      <h4 style="color: white; margin-bottom: 0.5rem">Game Log</h4>
+      <div id="logEntries"></div>
     </div>
+
     <div id="loadingOverlay">
-        <div class="spinner"></div>
+      <div class="spinner"></div>
+      <div
+        style="color: white; margin-top: 1rem; font-size: 1.2rem"
+        id="loadingText"
+      >
+        Loading...
+      </div>
     </div>
-    
-    <div class="profile-panel">
-        <div class="avatar-editor">
-            <canvas id="avatarCanvas"></canvas>
-            <input type="color" id="avatarColor">
-        </div>
-        <div class="stats">
-            <h3>Rank: <span id="playerRank">Novice</span></h3>
-            <div class="xp-bar"><div class="xp-progress"></div></div>
-        </div>
-    </div>
-    
-    <div class="store-container">
-        <div class="currency-display">
-            <span class="coins">🪙 150</span>
-            <span class="gems">💎 25</span>
-        </div>
-        <div class="card-skins-grid"></div>
-    </div>
-    
+
     <script>
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyB0Aj452H6Gp1ociH4ufHrLiU6Uucb-ysM",
-  authDomain: "who-is-the-spy-51308.firebaseapp.com",
-  databaseURL: "https://who-is-the-spy-51308-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "who-is-the-spy-51308",
-  storageBucket: "who-is-the-spy-51308.firebasestorage.app",
-  messagingSenderId: "900253646275",
-  appId: "1:900253646275:web:b9f7a3cbb1069a07d2d176",
-  measurementId: "G-NWXDDDRPRH"
-};
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCt5WTn46K0jf6dpGlUgTV_mBZT5t_ALog",
+        authDomain: "eighthgroupfriends.firebaseapp.com",
+        projectId: "eighthgroupfriends",
+        storageBucket: "eighthgroupfriends.appspot.com",
+        messagingSenderId: "901906106067",
+        appId: "1:901906106067:web:43f50a9423c862e2d4b626",
+        databaseURL: "https://eighthgroupfriends-default-rtdb.firebaseio.com/",
+      };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+      const auth = firebase.auth();
 
-        let currentUser = null;
-        let roomRef = null;
-        let unsubscribeRoom = null;
+      // Game variables
+      let currentUser = null;
+      let roomRef = null;
+      let roomId = null;
+      let unsubscribeCallbacks = [];
+      let gameState = null;
+      let playerId = null;
+      let isHost = false;
+      let playerName = Player${Math.floor(Math.random() * 1000)};
 
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        const specialCards = ['skip', 'reverse', 'draw2', 'wild', 'wild4'];
+      // Game constants
+      const COLORS = ["red", "blue", "green", "yellow"];
+      const SPECIAL_CARDS = ["skip", "reverse", "draw2", "wild", "wild4"];
+      const CARD_VALUES = [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        ...SPECIAL_CARDS,
+      ];
+      const PLAYER_POSITIONS = ["top", "left", "right"];
 
-        class Game {
-            constructor() {
-                this.players = [];
-                this.deck = [];
-                this.discardPile = [];
-                this.currentPlayerIndex = 0;
-                this.direction = 1;
-            }
+      // Card image URLs (using official UNO card images)
+      const CARD_IMAGES = {
+        red: {
+          0: "https://www.letsplayuno.com/images/cards/red_0.png",
+          1: "https://www.letsplayuno.com/images/cards/red_1.png",
+          2: "https://www.letsplayuno.com/images/cards/red_2.png",
+          3: "https://www.letsplayuno.com/images/cards/red_3.png",
+          4: "https://www.letsplayuno.com/images/cards/red_4.png",
+          5: "https://www.letsplayuno.com/images/cards/red_5.png",
+          6: "https://www.letsplayuno.com/images/cards/red_6.png",
+          7: "https://www.letsplayuno.com/images/cards/red_7.png",
+          8: "https://www.letsplayuno.com/images/cards/red_8.png",
+          9: "https://www.letsplayuno.com/images/cards/red_9.png",
+          skip: "https://www.letsplayuno.com/images/cards/red_skip.png",
+          reverse: "https://www.letsplayuno.com/images/cards/red_reverse.png",
+          draw2: "https://www.letsplayuno.com/images/cards/red_draw2.png",
+        },
+        blue: {
+          0: "https://www.letsplayuno.com/images/cards/blue_0.png",
+          1: "https://www.letsplayuno.com/images/cards/blue_1.png",
+          2: "https://www.letsplayuno.com/images/cards/blue_2.png",
+          3: "https://www.letsplayuno.com/images/cards/blue_3.png",
+          4: "https://www.letsplayuno.com/images/cards/blue_4.png",
+          5: "https://www.letsplayuno.com/images/cards/blue_5.png",
+          6: "https://www.letsplayuno.com/images/cards/blue_6.png",
+          7: "https://www.letsplayuno.com/images/cards/blue_7.png",
+          8: "https://www.letsplayuno.com/images/cards/blue_8.png",
+          9: "https://www.letsplayuno.com/images/cards/blue_9.png",
+          skip: "https://www.letsplayuno.com/images/cards/blue_skip.png",
+          reverse: "https://www.letsplayuno.com/images/cards/blue_reverse.png",
+          draw2: "https://www.letsplayuno.com/images/cards/blue_draw2.png",
+        },
+        green: {
+          0: "https://www.letsplayuno.com/images/cards/green_0.png",
+          1: "https://www.letsplayuno.com/images/cards/green_1.png",
+          2: "https://www.letsplayuno.com/images/cards/green_2.png",
+          3: "https://www.letsplayuno.com/images/cards/green_3.png",
+          4: "https://www.letsplayuno.com/images/cards/green_4.png",
+          5: "https://www.letsplayuno.com/images/cards/green_5.png",
+          6: "https://www.letsplayuno.com/images/cards/green_6.png",
+          7: "https://www.letsplayuno.com/images/cards/green_7.png",
+          8: "https://www.letsplayuno.com/images/cards/green_8.png",
+          9: "https://www.letsplayuno.com/images/cards/green_9.png",
+          skip: "https://www.letsplayuno.com/images/cards/green_skip.png",
+          reverse: "https://www.letsplayuno.com/images/cards/green_reverse.png",
+          draw2: "https://www.letsplayuno.com/images/cards/green_draw2.png",
+        },
+        yellow: {
+          0: "https://www.letsplayuno.com/images/cards/yellow_0.png",
+          1: "https://www.letsplayuno.com/images/cards/yellow_1.png",
+          2: "https://www.letsplayuno.com/images/cards/yellow_2.png",
+          3: "https://www.letsplayuno.com/images/cards/yellow_3.png",
+          4: "https://www.letsplayuno.com/images/cards/yellow_4.png",
+          5: "https://www.letsplayuno.com/images/cards/yellow_5.png",
+          6: "https://www.letsplayuno.com/images/cards/yellow_6.png",
+          7: "https://www.letsplayuno.com/images/cards/yellow_7.png",
+          8: "https://www.letsplayuno.com/images/cards/yellow_8.png",
+          9: "https://www.letsplayuno.com/images/cards/yellow_9.png",
+          skip: "https://www.letsplayuno.com/images/cards/yellow_skip.png",
+          reverse:
+            "https://www.letsplayuno.com/images/cards/yellow_reverse.png",
+          draw2: "https://www.letsplayuno.com/images/cards/yellow_draw2.png",
+        },
+        black: {
+          wild: "https://www.letsplayuno.com/images/cards/wild.png",
+          wild4: "https://www.letsplayuno.com/images/cards/wild_draw4.png",
+        },
+      };
 
-            initializeDeck() {
-                // Create full UNO deck
-                colors.forEach(color => {
-                    for (let i = 0; i <= 9; i++) {
-                        this.deck.push({ color, value: i.toString() });
-                        if (i !== 0) this.deck.push({ color, value: i.toString() });
-                    }
-                    specialCards.slice(0, 3).forEach(type => {
-                        this.deck.push({ color, value: type });
-                        this.deck.push({ color, value: type });
-                    });
-                });
-                specialCards.slice(3).forEach(type => {
-                    for (let i = 0; i < 4; i++) {
-                        this.deck.push({ color: 'black', value: type });
-                    }
-                });
-                this.shuffleDeck();
-            }
+      // Initialize the game
+      document.addEventListener("DOMContentLoaded", () => {
+        initGame();
+      });
 
-            shuffleDeck() {
-                for (let i = this.deck.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
-                }
-            }
+      async function initGame() {
+        showLoading("Connecting to server...");
+        try {
+          // Sign in anonymously
+          const userCredential = await auth.signInAnonymously();
+          currentUser = userCredential.user;
+          playerId = currentUser.uid;
 
-            dealCards(players) {
-                players.forEach(player => {
-                    player.hand = this.deck.splice(0, 7);
-                });
-                this.discardPile.push(this.deck.pop());
-            }
+          hideLoading();
+        } catch (error) {
+          console.error("Error initializing game:", error);
+          showError("Failed to connect to server. Please refresh the page.");
         }
-        class AuthManager {
-    constructor() {
-        this.providers = {
-            google: new firebase.auth.GoogleAuthProvider(),
-            facebook: new firebase.auth.FacebookAuthProvider(),
-            twitter: new firebase.auth.TwitterAuthProvider()
-        };
-    }
+      }
 
-    async linkAccount(providerType) {
-        await currentUser.linkWithPopup(this.providers[providerType]);
-        await this.updateUserProfile();
-    }
+      // Room management functions
+      async function createRoom() {
+        showLoading("Creating room...");
+        try {
+          roomId = generateRoomCode();
+          roomRef = database.ref(rooms/${roomId});
 
-    async updateUserProfile(avatarData) {
-        const storageRef = firebase.storage().ref(`avatars/${currentUser.uid}`);
-        await storageRef.putString(avatarData, 'data_url');
-        const avatarURL = await storageRef.getDownloadURL();
-        
-        await db.collection('users').doc(currentUser.uid).update({
-            avatar: avatarURL,
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-}
-
-// 2. Complex AI System
-class AdvancedAI {
-    constructor(difficulty = 'medium') {
-        this.difficulty = difficulty;
-        this.memory = new Map();
-    }
-
-    makeDecision(gameState) {
-        switch(this.difficulty) {
-            case 'easy':
-                return this.randomMove(gameState);
-            case 'medium':
-                return this.probabilisticMove(gameState);
-            case 'hard':
-                return this.strategicMove(gameState);
-            case 'expert':
-                return this.predictiveMove(gameState);
-        }
-    }
-
-    predictiveMove(gameState) {
-        const opponentHandSizes = gameState.players
-            .filter(p => !p.isAI)
-            .map(p => p.hand.length);
-        
-        const dangerThreshold = Math.min(...opponentHandSizes) <= 2;
-        const preferredColor = this.calculateColorDominance(gameState);
-        
-        return this.analyzeMoveTree(gameState, 3, dangerThreshold, preferredColor);
-    }
-
-    analyzeMoveTree(state, depth, dangerMode, preferredColor) {
-        // Implement minimax algorithm with alpha-beta pruning
-    }
-}
-
-// 3. Matchmaking Service
-class Matchmaker {
-    constructor() {
-        this.queue = [];
-        this.rankings = new Map();
-        this.lobbies = new Set();
-    }
-
-    async enterQueue(player) {
-        this.queue.push(player);
-        await this.tryCreateMatches();
-    }
-
-    async tryCreateMatches() {
-        while (this.queue.length >= 2) {
-            const players = this.queue.splice(0, 4);
-            const roomCode = generateRoomCode();
-            await this.createRankedRoom(players, roomCode);
-            this.updatePlayerRatings(players);
-        }
-    }
-
-    calculateEloChanges(winner, loser) {
-        // Implement ELO rating system
-    }
-}
-
-// 4. Replay System
-class GameRecorder {
-    constructor() {
-        this.events = [];
-        this.startTime = Date.now();
-    }
-
-    record(eventType, data) {
-        this.events.push({
-            type: eventType,
-            data,
-            timestamp: Date.now() - this.startTime
-        });
-    }
-
-    export() {
-        return {
-            meta: {
-                duration: Date.now() - this.startTime,
-                players: this.players,
-                version: '1.0'
-            },
-            events: this.events
-        };
-    }
-
-    async saveReplay() {
-        const replayData = this.export();
-        await db.collection('replays').add({
-            ...replayData,
-            players: replayData.meta.players.map(p => p.uid),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-}
-
-// 5. In-Game Economy
-class EconomyManager {
-    constructor() {
-        this.currencies = {
-            coins: 0,
-            gems: 0
-        };
-        this.inventory = [];
-    }
-
-    async purchaseItem(itemId) {
-        const item = await db.collection('storeItems').doc(itemId).get();
-        if (this.currencies[item.data().currency] >= item.data().price) {
-            this.currencies[item.data().currency] -= item.data().price;
-            this.inventory.push(itemId);
-            await this.updatePlayerWallet();
-            return true;
-        }
-        return false;
-    }
-
-    awardMatchRewards(placement) {
-        const rewards = this.calculateRewards(placement);
-        this.currencies.coins += rewards.coins;
-        this.currencies.gems += rewards.gems;
-        this.updatePlayerWallet();
-    }
-}
-
-// 6. Particle System
-class ParticleEngine {
-    constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext('2d');
-        this.particles = [];
-    }
-
-    createExplosion(x, y, color) {
-        for (let i = 0; i < 50; i++) {
-            this.particles.push({
-                x,
-                y,
-                color,
-                radius: Math.random() * 3 + 1,
-                velocity: {
-                    x: (Math.random() - 0.5) * 5,
-                    y: (Math.random() - 0.5) * 5
-                },
-                alpha: 1
-            });
-        }
-    }
-
-    animate() {
-        requestAnimationFrame(() => this.animate());
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.particles.forEach((particle, index) => {
-            particle.x += particle.velocity.x;
-            particle.y += particle.velocity.y;
-            particle.alpha -= 0.01;
-            
-            this.ctx.save();
-            this.ctx.globalAlpha = particle.alpha;
-            this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-            this.ctx.fillStyle = particle.color;
-            this.ctx.fill();
-            this.ctx.restore();
-            
-            if (particle.alpha <= 0) {
-                this.particles.splice(index, 1);
-            }
-        });
-    }
-}
-
-// 7. Tournament Bracket System
-class TournamentBracket {
-    constructor(participants) {
-        this.rounds = [];
-        this.currentRound = 0;
-        this.generateInitialBracket(participants);
-    }
-
-    generateInitialBracket(players) {
-        // Implement double-elimination bracket logic
-        const bracketSize = Math.pow(2, Math.ceil(Math.log2(players.length)));
-        this.rounds = new Array(Math.log2(bracketSize) * 2 - 1)
-            .fill()
-            .map(() => []);
-    }
-
-    recordMatchResult(matchId, winnerId) {
-        // Update bracket progression
-    }
-}
-
-// 8. Advanced Card Effects
-class CardEffectManager {
-    constructor() {
-        this.activeEffects = [];
-    }
-
-    applyEffect(card, gameState) {
-        switch(card.value) {
-            case 'reverse':
-                this.handleReverseEffect(gameState);
-                break;
-            case 'skip':
-                this.handleSkipEffect(gameState);
-                break;
-            case 'draw2':
-                this.handleDrawEffect(gameState, 2);
-                break;
-            case 'wild4':
-                this.handleWildEffect(gameState, 4);
-                break;
-        }
-    }
-
-    handleWildEffect(gameState, drawCount) {
-        gameState.pendingDraw += drawCount;
-        gameState.forceColorSelection = true;
-    }
-}
-
-// 9. Spectator Mode
-class SpectatorManager {
-    constructor() {
-        this.spectators = new Set();
-    }
-
-    async addSpectator(userId) {
-        const specRef = db.collection('spectators').doc(userId);
-        await specRef.set({
-            watching: this.roomId,
-            joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-
-    broadcastSpectatorView() {
-        // Send compressed game state to spectators
-        setInterval(async () => {
-            const gameState = await this.getCurrentGameState();
-            await db.collection('spectators').doc(this.roomId).update({
-                state: compressGameState(gameState),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }, 1000);
-    }
-}
-
-// 10. Advanced Sound Engine
-class AudioController {
-    constructor() {
-        this.sounds = new Map();
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.gainNode = this.audioContext.createGain();
-    }
-
-    async loadSounds() {
-        const soundList = {
-            draw: 'sounds/draw.mp3',
-            playCard: 'sounds/cardPlace.mp3',
-            uno: 'sounds/unoAlert.mp3',
-            victory: 'music/victoryTheme.mp3'
-        };
-
-        for (const [name, path] of Object.entries(soundList)) {
-            const response = await fetch(path);
-            const arrayBuffer = await response.arrayBuffer();
-            const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-            this.sounds.set(name, audioBuffer);
-        }
-    }
-
-    playSound(name, options = {}) {
-        const source = this.audioContext.createBufferSource();
-        source.buffer = this.sounds.get(name);
-        
-        if (options.pitch) {
-            source.playbackRate.value = options.pitch;
-        }
-        
-        source.connect(this.gainNode);
-        this.gainNode.connect(this.audioContext.destination);
-        source.start(0);
-    }
-}
-
-// 11. Performance Monitor
-class PerformanceTracker {
-    constructor() {
-        this.metrics = {
-            fps: 0,
-            latency: 0,
-            memory: 0
-        };
-    }
-
-    startMonitoring() {
-        setInterval(() => this.calculateFPS(), 1000);
-        this.recordMemoryUsage();
-    }
-
-    calculateFPS() {
-        let frameCount = 0;
-        const checkFPS = () => {
-            frameCount++;
-            requestAnimationFrame(checkFPS);
-        };
-        checkFPS();
-        setTimeout(() => this.metrics.fps = frameCount, 1000);
-    }
-}
-
-// 12. Dynamic Theme Engine
-class ThemeManager {
-    constructor() {
-        this.themes = {
-            default: {
-                '--primary': '#E53935',
-                '--background': '#f0f2f5'
-            },
-            dark: {
-                '--primary': '#7B1FA2',
-                '--background': '#2d2d2d'
-            },
-            ocean: {
-                '--primary': '#2196F3',
-                '--background': '#e1f5fe'
-            }
-        };
-    }
-
-    applyTheme(themeName) {
-        const theme = this.themes[themeName];
-        Object.entries(theme).forEach(([varName, value]) => {
-            document.documentElement.style.setProperty(varName, value);
-        });
-    }
-}
-
-// 13. Cheat Detection System
-class AntiCheat {
-    constructor() {
-        this.validMoves = new Map();
-    }
-
-    validateMove(playerId, move) {
-        const valid = this.checkMoveValidity(move);
-        if (!valid) {
-            this.flagPlayer(playerId);
-            return false;
-        }
-        return true;
-    }
-
-    checkMoveValidity(move) {
-        // Implement move validation against game rules
-        // Check timing, possible card plays, etc.
-        return true;
-    }
-
-    flagPlayer(playerId) {
-        db.collection('reports').add({
-            playerId,
-            reason: 'Suspicious activity',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-}
-
-// 14. Dynamic Localization
-class LocalizationManager {
-    constructor() {
-        this.languages = {};
-        this.currentLang = 'en';
-    }
-
-    async loadLanguage(langCode) {
-        const response = await fetch(`locales/${langCode}.json`);
-        this.languages[langCode] = await response.json();
-    }
-
-    t(key) {
-        return this.languages[this.currentLang][key] || key;
-    }
-
-    updateUI() {
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            el.textContent = this.t(el.dataset.i18n);
-        });
-    }
-}
-
-// 15. Cross-Device Sync
-class SyncService {
-    constructor() {
-        this.syncQueue = [];
-        this.isOnline = true;
-    }
-
-    checkConnectivity() {
-        setInterval(() => {
-            this.isOnline = navigator.onLine;
-            if (this.isOnline) this.flushQueue();
-        }, 5000);
-    }
-
-    queueAction(action) {
-        this.syncQueue.push(action);
-        if (this.isOnline) this.flushQueue();
-    }
-
-    async flushQueue() {
-        while (this.syncQueue.length > 0) {
-            const action = this.syncQueue.shift();
-            await firebase.functions().httpsCallable(action.type)(action.data);
-        }
-    }
-}
-
-// Initialize all systems
-const authManager = new AuthManager();
-const matchmaker = new Matchmaker();
-const particleEngine = new ParticleEngine('particleCanvas');
-const audioController = new AudioController();
-const antiCheat = new AntiCheat();
-const localization = new LocalizationManager();
-
-// Start core systems
-particleEngine.animate();
-audioController.loadSounds();
-performanceTracker.startMonitoring();
-localization.loadLanguage('en').then(() => localization.updateUI());
-        auth.signInAnonymously().then(user => {
-            currentUser = user;
-        });
-
-        async function createRoom() {
-            const roomCode = generateRoomCode();
-            roomRef = db.collection('rooms').doc(roomCode);
-            
-            await roomRef.set({
-                players: [],
-                gameState: 'waiting',
-                currentGame: null,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            joinRoom(roomCode, true);
-        }
-
-        async function joinRoom(roomCode, isHost = false) {
-            const code = isHost ? roomCode : document.getElementById('roomCodeInput').value;
-            roomRef = db.collection('rooms').doc(code);
-            const doc = await roomRef.get();
-
-            if (!doc.exists) return alert('Room not found');
-
-            const playerRef = roomRef.collection('players').doc(currentUser.uid);
-            await playerRef.set({
-                uid: currentUser.uid,
-                name: `Player ${Math.floor(Math.random() * 1000)}`,
+          // Create room data
+          await roomRef.set({
+            state: "waiting",
+            host: playerId,
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            players: {
+              [playerId]: {
+                name: playerName,
                 ready: false,
-                hand: [],
-                isHost
-            });
-
-            setupRoomListeners();
-            showLobby(code);
-        }
-
-        function setupRoomListeners() {
-            unsubscribeRoom = roomRef.onSnapshot(async doc => {
-                const roomData = doc.data();
-                updateLobbyUI(roomData);
-                
-                if (roomData.gameState === 'playing') {
-                    startGame(roomData.currentGame);
-                }
-            });
-        }
-
-        function updateLobbyUI(roomData) {
-            document.getElementById('roomCodeDisplay').textContent = roomRef.id;
-            const playersList = document.getElementById('playersList');
-            playersList.innerHTML = roomData.players.map(p => `
-                <div>${p.name} ${p.ready ? '✅' : '❌'}</div>
-            `).join('');
-
-            document.getElementById('readyButton').style.display = 
-                roomData.players.length >= 2 ? 'block' : 'none';
-        }
-
-        async function toggleReady() {
-            const playerRef = roomRef.collection('players').doc(currentUser.uid);
-            const player = (await playerRef.get()).data();
-            await playerRef.update({ ready: !player.ready });
-
-            const allReady = (await roomRef.collection('players').get()).docs
-                .every(p => p.data().ready);
-
-            if (allReady) {
-                const game = new Game();
-                game.initializeDeck();
-                game.dealCards(await getPlayers());
-                await roomRef.update({
-                    gameState: 'playing',
-                    currentGame: game
-                });
-            }
-        }
-
-        function startGame(gameState) {
-            document.getElementById('lobbyContainer').classList.remove('active');
-            document.getElementById('gameContainer').style.display = 'block';
-            renderGame(gameState);
-        }
-
-        function renderGame(game) {
-            const hand = document.getElementById('playerHand');
-            hand.innerHTML = game.players.find(p => p.uid === currentUser.uid)
-                .hand.map(card => createCardElement(card)).join('');
-        }
-
-        function createCardElement(card) {
-            return `<div class="card" style="background: ${card.color}">
-                ${card.value}
-            </div>`;
-        }
-
-        function generateRoomCode() {
-            return Math.random().toString(36).substr(2, 6).toUpperCase();
-        }
-
-        function showLobby(code) {
-            document.getElementById('authContainer').classList.remove('active');
-            document.getElementById('lobbyContainer').classList.add('active');
-        }
-        class Game {
-    constructor() {
-        // ... existing code ...
-        this.unoCallers = new Set();
-        this.pendingDraw = 0;
-        this.stackedDraw = 0;
-        this.chatHistory = [];
-        this.aiPlayers = [];
-    }
-
-    // Advanced Card Validation
-    validateMove(card, topCard, currentColor) {
-        if (card.color === 'black') return true;
-        if (card.color === currentColor) return true;
-        return card.value === topCard.value;
-    }
-
-    // Wild Card Handling
-    async handleWild(card, selectedColor) {
-        await roomRef.update({
-            'currentGame.currentColor': selectedColor,
-            'currentGame.discardPile': firebase.firestore.FieldValue.arrayUnion({
-                ...card,
-                color: selectedColor
-            })
-        });
-    }
-
-    // Draw Card Stacking
-    async handleDrawStacking(card) {
-        if (card.value === 'draw2') {
-            this.stackedDraw += 2;
-        } else if (card.value === 'wild4') {
-            this.stackedDraw += 4;
-        }
-        
-        await roomRef.update({
-            'currentGame.stackedDraw': this.stackedDraw
-        });
-    }
-
-    // UNO Call Validation
-    async checkUnoCall(player) {
-        if (player.hand.length !== 1) return;
-        if (!this.unoCallers.has(player.uid)) {
-            await this.penalizePlayer(player, 2);
-        }
-    }
-
-    // AI Logic
-    async processAITurn() {
-        const ai = this.players.find(p => p.isAI && p.uid === this.currentPlayer);
-        if (!ai) return;
-
-        const validMoves = ai.hand.filter(card => 
-            this.validateMove(card, this.discardPile[0], this.currentColor)
-        );
-
-        // AI Decision Making
-        let selectedCard;
-        if (validMoves.length > 0) {
-            // Prefer special cards
-            selectedCard = validMoves.find(c => specialCards.includes(c.value)) || validMoves[0];
-            
-            // Wild card color selection logic
-            if (selectedCard.color === 'black') {
-                const colorCounts = ai.hand.reduce((acc, card) => {
-                    acc[card.color] = (acc[card.color] || 0) + 1;
-                    return acc;
-                }, {});
-                const selectedColor = Object.entries(colorCounts)
-                    .sort((a, b) => b[1] - a[1])[0][0];
-                await this.handleWild(selectedCard, selectedColor);
-            }
-            
-            await this.playCard(ai, selectedCard);
-        } else {
-            await this.drawCard(ai);
-            const newCard = ai.hand[ai.hand.length - 1];
-            if (this.validateMove (newCard, ...) ) {
-                await this.playCard(ai, newCard);
-            }
-        }
-    }
-
-    // Penalty System
-    async penalizePlayer(player, count) {
-        const newCards = this.deck.splice(0, count);
-        await roomRef.collection('players').doc(player.uid).update({
-            hand: firebase.firestore.FieldValue.arrayUnion(...newCards)
-        });
-    }
-}
-
-// Extended Firebase Class
-class FirebaseManager {
-    constructor() {
-        this.roomSubscriptions = new Map();
-        this.chatSubscriptions = new Map();
-    }
-
-    // Real-time Chat
-    async sendChatMessage(message) {
-        await roomRef.collection('chat').add({
-            sender: currentUser.uid,
-            text: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-
-    // Connection Monitoring
-    setupPresence() {
-        const presenceRef = db.ref('status/' + currentUser.uid);
-        const connectedRef = db.ref('.info/connected');
-
-        connectedRef.on('value', (snap) => {
-            if (snap.val()) {
-                presenceRef.onDisconnect().set({
-                    state: 'offline',
-                    lastChanged: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    presenceRef.set({
-                        state: 'online',
-                        lastChanged: firebase.database.ServerValue.TIMESTAMP
-                    });
-                });
-            }
-        });
-    }
-
-    // Security Rules Helper
-    async validateMove(move) {
-        const idToken = await currentUser.getIdToken();
-        const response = await fetch('/validateMove', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
+                isHost: true,
+                isAI: false,
+              },
             },
-            body: JSON.stringify(move)
+          });
+
+          await joinRoom(roomId, true);
+          hideLoading();
+        } catch (error) {
+          console.error("Error creating room:", error);
+          showError("Failed to create room. Please try again.");
+        }
+      }
+
+      async function joinRoom(roomCode, isCreator = false) {
+        showLoading(isCreator ? "Setting up your room..." : "Joining room...");
+        try {
+          const code = isCreator
+            ? roomCode
+            : document
+                .getElementById("roomCodeInput")
+                .value.trim()
+                .toUpperCase();
+          roomId = code;
+          roomRef = database.ref(rooms/${roomId});
+
+          // Check if room exists
+          const snapshot = await roomRef.once("value");
+          if (!snapshot.exists()) {
+            throw new Error("Room not found");
+          }
+
+          const roomData = snapshot.val();
+          isHost = roomData.host === playerId;
+
+          // Add player to room
+          await roomRef.child(players/${playerId}).set({
+            name: playerName,
+            ready: false,
+            isHost: isHost,
+            isAI: false,
+          });
+
+          setupRoomListeners();
+          showLobby(code);
+          hideLoading();
+        } catch (error) {
+          console.error("Error joining room:", error);
+          showError(
+            "Failed to join room. Please check the code and try again."
+          );
+        }
+      }
+
+      function setupRoomListeners() {
+        // Clear any existing listeners
+        unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
+        unsubscribeCallbacks = [];
+
+        // Listen for room changes
+        const roomListener = roomRef.on("value", (snapshot) => {
+          const roomData = snapshot.val();
+          if (!roomData) return;
+
+          updateLobbyUI(roomData);
+
+          if (roomData.state === "playing") {
+            startGame(roomData.game);
+          }
         });
-        return response.json();
-    }
-}
 
-// Advanced UI Controller
-class UIController {
-    constructor() {
-        this.cardElements = new Map();
-        this.audioElements = {
-            draw: new Audio('sounds/draw.mp3'),
-            play: new Audio('sounds/play.mp3'),
-            uno: new Audio('sounds/uno.mp3')
-        };
-    }
+        unsubscribeCallbacks.push(() => roomRef.off("value", roomListener));
+      }
 
-    // Card Animation System
-    animateCard(cardId, animationName) {
-        const card = this.cardElements.get(cardId);
-        card.style.animation = `${animationName} 0.5s ease`;
-        card.addEventListener('animationend', () => {
-            card.style.animation = '';
-        }, {once: true});
-    }
+      function updateLobbyUI(roomData) {
+        document.getElementById("roomCodeDisplay").textContent = roomId;
 
-    // 3D Card Flip
-    flipCard(cardElement, face) {
-        cardElement.style.transform = face === 'front' 
-            ? 'rotateY(0deg)'
-            : 'rotateY(180deg)';
-    }
+        // Update players list
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = "";
 
-    // Dynamic Position Calculator
-    calculateHandPosition(index, total) {
-        const angle = (index - (total-1)/2) * 15;
-        const yOffset = Math.abs(angle) * 2;
-        return `transform: rotate(${angle}deg) translateY(${yOffset}px)`;
-    }
+        const players = roomData.players ? Object.values(roomData.players) : [];
 
-    // Advanced Color Picker
-    showColorPicker() {
-        const picker = document.getElementById('colorPicker');
-        picker.style.display = 'grid';
-        setTimeout(() => {
-            picker.style.opacity = '1';
-            picker.style.transform = 'translate(-50%, -50%) scale(1)';
-        }, 10);
-    }
-}
+        players.forEach((player) => {
+          const playerElement = document.createElement("div");
+          playerElement.className = "player-item";
+          playerElement.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div class="player-avatar" style="width: 30px; height: 30px; font-size: 0.8rem;">${player.name.charAt(
+                          0
+                        )}</div>
+                        <div>
+                            <strong>${player.name}</strong> ${
+            player.isHost ? "👑" : ""
+          }
+                            <div>${
+                              player.ready ? "✅ Ready" : "❌ Not ready"
+                            }</div>
+                        </div>
+                    </div>
+                `;
+          playersList.appendChild(playerElement);
+        });
 
-// Game Statistics System
-class StatisticsTracker {
-    constructor() {
-        this.gamesPlayed = 0;
-        this.cardsPlayed = 0;
-        this.specialCardsUsed = 0;
-    }
+        // Keep the "Waiting for more players (0/4)" text as requested
+        document.getElementById("lobbyStatus").textContent =
+          "Waiting for more players (0/4)";
 
-    recordMove(card) {
-        this.cardsPlayed++;
-        if (specialCards.includes(card.value)) {
-            this.specialCardsUsed++;
+        // Show appropriate buttons
+        const readyButton = document.getElementById("readyButton");
+        const startButton = document.getElementById("startButton");
+        const playerCount = players.length;
+
+        readyButton.style.display = playerCount >= 2 ? "block" : "none";
+        startButton.style.display =
+          isHost && playerCount >= 2 ? "block" : "none";
+      }
+
+      function updatePlayerAreas(playerHands) {
+        // Hide all player areas first
+        const playerAreas = ["top", "left", "right"];
+        playerAreas.forEach((pos) => {
+          document.getElementById(${pos}Player).style.display = "none";
+        });
+
+        // Find our position (always bottom)
+        const playerIds = Object.keys(playerHands);
+        const ourIndex = playerIds.indexOf(playerId);
+
+        // Update other player areas
+        let positionIndex = 0;
+        for (let i = 0; i < playerIds.length; i++) {
+          if (i === ourIndex) continue;
+
+          const currentPlayerId = playerIds[i];
+          const position = PLAYER_POSITIONS[positionIndex];
+          const playerArea = document.getElementById(${position}Player);
+          const handSize = playerHands[currentPlayerId].length;
+
+          playerArea.style.display = "block";
+          playerArea.querySelector(".player-avatar").textContent =
+            playerHands[currentPlayerId].name.charAt(0);
+          playerArea.querySelector(".player-name").textContent =
+            playerHands[currentPlayerId].name || Player ${i + 1};
+          playerArea.querySelector(
+            ".player-cards"
+          ).textContent = ${handSize} card${handSize !== 1 ? "s" : ""};
+
+          // Highlight current player
+          if (gameState.currentPlayerIndex === i) {
+            playerArea.classList.add("current-player");
+          } else {
+            playerArea.classList.remove("current-player");
+          }
+
+          positionIndex++;
         }
-    }
+      }
 
-    generateReport() {
-        return {
-            winRate: (this.wins / this.gamesPlayed) * 100,
-            avgGameTime: this.totalGameTime / this.gamesPlayed,
-            favoriteCard: this.mostUsedCard
-        };
-    }
-}
+      async function toggleReady() {
+        try {
+          await roomRef
+            .child(players/${playerId}/ready)
+            .transaction((current) => !current);
+        } catch (error) {
+          console.error("Error toggling ready state:", error);
+          showError("Failed to update ready status. Please try again.");
+        }
+      }
 
-// Tournament System
-class TournamentManager {
-    constructor() {
-        this.currentRound = 0;
-        this.scores = new Map();
-    }
+      async function startGameManually() {
+        showLoading("Starting game...");
+        try {
+          // Check if all players are ready
+          const snapshot = await roomRef.child("players").once("value");
+          const players = snapshot.val();
 
-    startTournament(players) {
-        this.players = players;
-        this.generateBrackets();
-    }
+          if (Object.values(players).some((p) => !p.ready)) {
+            throw new Error("Not all players are ready");
+          }
 
-    generateBrackets() {
-        // Implementation of tournament bracket logic
-    }
+          // Initialize game
+          const game = new Game();
+          game.initializeDeck();
 
-    recordMatchResults(winner, loser) {
-        this.scores.set(winner, (this.scores.get(winner) || 0) + 3);
-    }
-}
+          // Prepare player hands
+          const playerHands = {};
+          Object.keys(players).forEach((playerId) => {
+            playerHands[playerId] = game.deck.splice(0, 7);
+          });
 
-// Add these new systems to main game initialization
-const firebaseManager = new FirebaseManager();
-const statsTracker = new StatisticsTracker();
-const tournamentManager = new TournamentManager();
-const uiController = new UIController();
+          // Start with a non-special card
+          let firstCard;
+          do {
+            firstCard = game.deck.pop();
+          } while (SPECIAL_CARDS.includes(firstCard.value));
 
-// Additional Firebase Cloud Functions (to be deployed separately)
-// These handle secure game logic validation
-exports.validateMove = functions.firestore
-    .document('rooms/{roomId}/moves/{moveId}')
-    .onCreate(async (snap, context) => {
-        const move = snap.data();
-        const gameState = await getGameState(move.roomId);
+          // Update room state
+          await roomRef.update({
+            state: "playing",
+            game: {
+              deck: game.deck,
+              discardPile: [firstCard],
+              currentPlayerIndex: 0,
+              direction: 1,
+              currentColor: firstCard.color,
+              pendingDraw: 0,
+              playerHands: playerHands,
+              log: [
+                {
+                  type: "start",
+                  message: "Game started!",
+                  timestamp: firebase.database.ServerValue.TIMESTAMP,
+                },
+              ],
+            },
+          });
 
-        if (!validateMoveLogic(move, gameState)) {
-            await snap.ref.delete();
-            return logCheatAttempt(move.playerId);
+          hideLoading();
+        } catch (error) {
+          console.error("Error starting game:", error);
+          showError("Failed to start game. Make sure all players are ready.");
+        }
+      }
+
+      function startGame(gameData) {
+        document.getElementById("lobbyContainer").classList.remove("active");
+        document.getElementById("gameContainer").style.display = "block";
+
+        gameState = gameData;
+        renderGame(gameData);
+      }
+
+      function renderGame(game) {
+        // Update player areas
+        updatePlayerAreas(game.playerHands);
+
+        // Render discard pile
+        const discardPile = document.getElementById("discardPile");
+        if (game.discardPile && game.discardPile.length > 0) {
+          const topCard = game.discardPile[game.discardPile.length - 1];
+          discardPile.innerHTML = createCardElement(topCard);
         }
 
-        return processValidMove(move, gameState);
-    });
+        // Render player hand
+        const playerHand = document.getElementById("playerHand");
+        const currentPlayerHand = game.playerHands[playerId];
 
-// Voice Chat Integration (WebRTC)
-class VoiceChat {
-    constructor() {
-        this.peerConnection = null;
-        this.dataChannel = null;
-    }
+        if (currentPlayerHand) {
+          playerHand.innerHTML = currentPlayerHand
+            .map((card) => createCardElement(card))
+            .join("");
 
-    async init() {
-        this.peerConnection = new RTCPeerConnection();
-        this.dataChannel = this.peerConnection.createDataChannel('chat');
-        this.setupEventListeners();
-    }
+          // Make cards clickable if it's our turn
+          const playerIds = Object.keys(game.playerHands);
+          if (playerIds[game.currentPlayerIndex] === playerId) {
+            document.querySelectorAll(".card").forEach((card) => {
+              card.onclick = function () {
+                playCard(this.dataset.color, this.dataset.value);
+              };
+            });
+            document.getElementById("endTurnButton").disabled = false;
+          } else {
+            document.getElementById("endTurnButton").disabled = true;
+          }
 
-    async connect() {
-        const offer = await this.peerConnection.createOffer();
-        await this.peerConnection.setLocalDescription(offer);
-        // Exchange ICE candidates via Firebase
-    }
-}
+          // Show UNO button if we have 1 card
+          document.getElementById("unoButton").style.display =
+            currentPlayerHand.length === 1 ? "block" : "none";
+        }
 
-// Card Skinning System
-class CardSkinManager {
-    constructor() {
-        this.currentSkin = 'classic';
-        this.skins = {
-            'classic': 'skins/classic/',
-            'dark': 'skins/dark/',
-            'custom': 'skins/custom/'
+        // Update game log
+        if (game.log) {
+          updateGameLog(game.log);
+        }
+      }
+
+      function createCardElement(card) {
+        const colorClass = card.color === "black" ? "black" : card.color;
+        const symbol = getCardSymbol(card.value);
+        const imageUrl = CARD_IMAGES[card.color]?.[card.value] || "";
+
+        return `
+                <div class="card ${colorClass}" 
+                     data-color="${card.color}" 
+                     data-value="${card.value}"
+                     style="background-image: url('${imageUrl}')">
+                    ${imageUrl ? "" : symbol}
+                </div>
+            `;
+      }
+
+      function getCardSymbol(value) {
+        const symbols = {
+          skip: "🚫",
+          reverse: "🔄",
+          draw2: "+2",
+          wild: "🌈",
+          wild4: "+4",
         };
-    }
+        return symbols[value] || value;
+      }
 
-    applySkin(skinName) {
-        document.documentElement.style.setProperty(
-            '--card-back-image',
-            `url('${this.skins[skinName]}back.png')`
-        );
-    }
-}
-        // Initialize game
-        document.getElementById('gameContainer').style.display = 'none';
+      async function playCard(color, value) {
+        showLoading("Playing card...");
+        try {
+          // Get current game state
+          const snapshot = await roomRef.child("game").once("value");
+          const game = snapshot.val();
+
+          // Validate move
+          const topCard = game.discardPile[game.discardPile.length - 1];
+          const currentColor = game.currentColor || topCard.color;
+
+          // Special case for Wild +4 - can only play if no matching color
+          if (value === "wild4") {
+            const currentPlayerHand = game.playerHands[playerId];
+            const hasMatchingColor = currentPlayerHand.some(
+              (card) => card.color === currentColor && card.color !== "black"
+            );
+
+            if (hasMatchingColor) {
+              throw new Error(
+                "You can't play Wild +4 when you have a matching color"
+              );
+            }
+          }
+
+          // Normal validation for other cards
+          if (
+            color !== "black" &&
+            color !== currentColor &&
+            value !== topCard.value
+          ) {
+            throw new Error("Invalid move");
+          }
+
+          // Remove card from hand
+          const updatedHand = game.playerHands[playerId].filter(
+            (card) => !(card.color === color && card.value === value)
+          );
+
+          // Add to discard pile
+          const newDiscardPile = [...game.discardPile, { color, value }];
+
+          // Handle special cards
+          let newDirection = game.direction;
+          let newPendingDraw = game.pendingDraw;
+          let skipNextPlayer = false;
+
+          if (SPECIAL_CARDS.includes(value)) {
+            switch (value) {
+              case "skip":
+                skipNextPlayer = true;
+                break;
+              case "reverse":
+                // With 2 players, reverse acts like skip
+                if (Object.keys(game.playerHands).length === 2) {
+                  skipNextPlayer = true;
+                } else {
+                  newDirection = -game.direction;
+                }
+                break;
+              case "draw2":
+                newPendingDraw += 2;
+                break;
+              case "wild4":
+                newPendingDraw += 4;
+                break;
+            }
+          }
+
+          // Move to next player
+          const playerIds = Object.keys(game.playerHands);
+          let newPlayerIndex =
+            (game.currentPlayerIndex + newDirection + playerIds.length) %
+            playerIds.length;
+
+          // Skip next player if needed
+          if (skipNextPlayer) {
+            newPlayerIndex =
+              (newPlayerIndex + newDirection + playerIds.length) %
+              playerIds.length;
+          }
+
+          // Check for win condition
+          let gameOver = false;
+          if (updatedHand.length === 0) {
+            gameOver = true;
+            await roomRef.child("game/log").push({
+              type: "win",
+              player: playerName,
+              timestamp: firebase.database.ServerValue.TIMESTAMP,
+            });
+          }
+
+          // Update game state
+          await roomRef.child("game").update({
+            discardPile: newDiscardPile,
+            playerHands: {
+              [playerId]: updatedHand,
+            },
+            currentPlayerIndex: newPlayerIndex,
+            direction: newDirection,
+            pendingDraw: newPendingDraw,
+            currentColor: color === "black" ? null : color, // Will be set after color selection
+            state: gameOver ? "finished" : "playing",
+          });
+
+          // Add to game log
+          await roomRef.child("game/log").push({
+            type: "play",
+            player: playerName,
+            card: ${color} ${value},
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+          });
+
+          // For wild cards, show color picker
+          if (color === "black") {
+            showColorPicker();
+          }
+
+          hideLoading();
+        } catch (error) {
+          console.error("Error playing card:", error);
+          showError(error.message || "Invalid move. Please try another card.");
+        }
+      }
+
+      async function drawCard() {
+        showLoading("Drawing card...");
+        try {
+          // Get current game state
+          const snapshot = await roomRef.child("game").once("value");
+          const game = snapshot.val();
+
+          // Check if it's our turn
+          const playerIds = Object.keys(game.playerHands);
+          if (playerIds[game.currentPlayerIndex] !== playerId) {
+            throw new Error("Not your turn");
+          }
+
+          // Draw card(s) based on pending draw
+          let cardsDrawn = [];
+          let drawCount = game.pendingDraw > 0 ? game.pendingDraw : 1;
+
+          for (let i = 0; i < drawCount && game.deck.length > 0; i++) {
+            cardsDrawn.push(game.deck.pop());
+          }
+
+          const updatedHand = [...game.playerHands[playerId], ...cardsDrawn];
+
+          // Handle pending draws
+          let newPendingDraw = game.pendingDraw > 0 ? 0 : game.pendingDraw;
+          let newPlayerIndex = game.currentPlayerIndex;
+
+          if (game.pendingDraw === 0) {
+            // Normal draw - end turn
+            newPlayerIndex =
+              (game.currentPlayerIndex + game.direction + playerIds.length) %
+              playerIds.length;
+          }
+
+          // Update game state
+          await roomRef.child("game").update({
+            deck: game.deck,
+            playerHands: {
+              [playerId]: updatedHand,
+            },
+            currentPlayerIndex: newPlayerIndex,
+            pendingDraw: newPendingDraw,
+          });
+
+          // Add to game log
+          if (cardsDrawn.length > 0) {
+            await roomRef.child("game/log").push({
+              type: "draw",
+              player: playerName,
+              count: cardsDrawn.length,
+              timestamp: firebase.database.ServerValue.TIMESTAMP,
+            });
+          }
+
+          hideLoading();
+        } catch (error) {
+          console.error("Error drawing card:", error);
+          showError("Couldn't draw card. Please try again.");
+        }
+      }
+
+      async function endTurn() {
+        showLoading("Ending turn...");
+        try {
+          // Get current game state
+          const snapshot = await roomRef.child("game").once("value");
+          const game = snapshot.val();
+
+          // Check if it's our turn
+          const playerIds = Object.keys(game.playerHands);
+          if (playerIds[game.currentPlayerIndex] !== playerId) {
+            throw new Error("Not your turn");
+          }
+
+          // Advance turn
+          const newPlayerIndex =
+            (game.currentPlayerIndex + game.direction + playerIds.length) %
+            playerIds.length;
+
+          // Update game state
+          await roomRef.child("game/currentPlayerIndex").set(newPlayerIndex);
+
+          hideLoading();
+        } catch (error) {
+          console.error("Error ending turn:", error);
+          showError("Couldn't end turn. Please try again.");
+        }
+      }
+
+      function showColorPicker() {
+        document.getElementById("colorPicker").style.display = "grid";
+      }
+
+      async function selectColor(color) {
+        showLoading("Changing color...");
+        try {
+          // Update current color
+          await roomRef.child("game/currentColor").set(color);
+
+          // Hide color picker
+          document.getElementById("colorPicker").style.display = "none";
+
+          hideLoading();
+        } catch (error) {
+          console.error("Error selecting color:", error);
+          showError("Failed to change color. Please try again.");
+        }
+      }
+
+      async function callUno() {
+        try {
+          // Add to game log
+          await roomRef.child("game/log").push({
+            type: "uno",
+            player: playerName,
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+          });
+
+          document.getElementById("unoButton").style.display = "none";
+        } catch (error) {
+          console.error("Error calling UNO:", error);
+        }
+      }
+
+      function updateGameLog(logEntries) {
+        const logEntriesElement = document.getElementById("logEntries");
+        logEntriesElement.innerHTML = "";
+
+        if (!logEntries) return;
+
+        // Convert object to array if needed
+        const entries = Array.isArray(logEntries)
+          ? logEntries
+          : Object.values(logEntries);
+
+        // Sort by timestamp (newest first)
+        entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        entries.slice(0, 10).forEach((entry) => {
+          const logEntry = document.createElement("div");
+          logEntry.className = "log-entry";
+
+          switch (entry.type) {
+            case "play":
+              logEntry.textContent = ${entry.player} played ${entry.card};
+              break;
+            case "draw":
+              logEntry.textContent = `${entry.player} drew ${entry.count} card${
+                entry.count !== 1 ? "s" : ""
+              }`;
+              break;
+            case "uno":
+              logEntry.innerHTML = ❗ <strong>${entry.player}</strong> called UNO!;
+              break;
+            case "win":
+              logEntry.innerHTML = 🎉 <strong>${entry.player}</strong> wins the game!;
+              break;
+            case "start":
+              logEntry.textContent = Game started!;
+              break;
+            default:
+              logEntry.textContent = ${entry.message};
+          }
+
+          logEntriesElement.appendChild(logEntry);
+        });
+      }
+
+      async function leaveRoom() {
+        // Remove all listeners
+        unsubscribeCallbacks.forEach((unsubscribe) => unsubscribe());
+        unsubscribeCallbacks = [];
+
+        if (roomRef) {
+          // Remove player from room
+          await roomRef.child(players/${playerId}).remove();
+
+          // If host leaves and game hasn't started, delete room
+          const snapshot = await roomRef.once("value");
+          if (isHost && snapshot.val().state === "waiting") {
+            await roomRef.remove();
+          }
+        }
+
+        // Return to auth screen
+        document.getElementById("lobbyContainer").classList.remove("active");
+        document.getElementById("gameContainer").style.display = "none";
+        document.getElementById("authContainer").classList.add("active");
+
+        roomRef = null;
+        gameState = null;
+      }
+
+      function showGameMenu() {
+        const menu = confirm("Game Menu\n\n1. Leave Game\n2. Cancel");
+        if (menu) {
+          leaveRoom();
+        }
+      }
+
+      // Utility functions
+      function generateRoomCode() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        let result = "";
+        for (let i = 0; i < 6; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      }
+
+      function showLobby(code) {
+        document.getElementById("authContainer").classList.remove("active");
+        document.getElementById("lobbyContainer").classList.add("active");
+        document.getElementById("roomCodeDisplay").textContent = code;
+      }
+
+      function showLoading(message) {
+        document.getElementById("loadingOverlay").style.display = "flex";
+        document.getElementById("loadingText").textContent =
+          message || "Loading...";
+      }
+
+      function hideLoading() {
+        document.getElementById("loadingOverlay").style.display = "none";
+      }
+
+      function showError(message) {
+        hideLoading();
+        alert(message);
+      }
+
+      // Game class
+      class Game {
+        constructor() {
+          this.players = [];
+          this.deck = [];
+          this.discardPile = [];
+          this.currentPlayerIndex = 0;
+          this.direction = 1;
+          this.currentColor = null;
+          this.pendingDraw = 0;
+        }
+
+        initializeDeck() {
+          // Create number cards
+          COLORS.forEach((color) => {
+            // Add one 0 for each color
+            this.deck.push({ color, value: "0" });
+
+            // Add two of each 1-9 for each color
+            for (let i = 1; i <= 9; i++) {
+              this.deck.push({ color, value: i.toString() });
+              this.deck.push({ color, value: i.toString() });
+            }
+
+            // Add two of each action card for each color
+            ["skip", "reverse", "draw2"].forEach((type) => {
+              this.deck.push({ color, value: type });
+              this.deck.push({ color, value: type });
+            });
+          });
+
+          // Add wild cards
+          for (let i = 0; i < 4; i++) {
+            this.deck.push({ color: "black", value: "wild" });
+            this.deck.push({ color: "black", value: "wild4" });
+          }
+
+          this.shuffleDeck();
+        }
+
+        shuffleDeck() {
+          for (let i = this.deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]];
+          }
+        }
+      }
     </script>
-</body>
+  </body>
 </html>
