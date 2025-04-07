@@ -614,7 +614,7 @@
                 column.className = 'column';
                 column.dataset.column = col;
                 
-                // Create cells for each column
+                // Create cells for each column (now in correct order)
                 for (let row = 0; row < 6; row++) {
                     const cell = document.createElement('div');
                     cell.className = 'cell';
@@ -668,9 +668,9 @@
         function makeMove(col) {
             if (!gameActive) return;
             
-            // Find the first empty row in the selected column
+            // Find the lowest empty row in the selected column (changed from highest)
             let row = -1;
-            for (let r = 5; r >= 0; r--) {
+            for (let r = 0; r < 6; r++) {
                 if (gameBoard[r][col] === 0) {
                     row = r;
                     break;
@@ -685,9 +685,9 @@
             // Update UI
             const cell = document.querySelector(`#singlePlayerBoard .cell[data-row="${row}"][data-column="${col}"]`);
             cell.classList.add(`player${currentPlayer}`);
-            
             // Check for win
-            if (checkWin(row, col)) {
+     // Check for win
+     if (checkWin(row, col)) {
                 gameActive = false;
                 showGameOver(`Player ${currentPlayer} wins!`);
                 updateLeaderboard(currentPlayer === 1 ? 'win' : 'loss');
@@ -700,7 +700,6 @@
                 showGameOver("It's a draw!");
                 return;
             }
-            
             // Switch player
             currentPlayer = currentPlayer === 1 ? 2 : 1;
             document.getElementById('singlePlayerTurn').textContent = currentPlayer === 1 ? 'Your turn (Red)' : 'AI thinking...';
@@ -993,9 +992,9 @@
         function makeMultiplayerMove(col) {
             if (!gameActive || currentPlayer !== playerNumber) return;
             
-            // Find the first empty row in the selected column
+            // Find the lowest empty row in the selected column (changed from highest)
             let row = -1;
-            for (let r = 5; r >= 0; r--) {
+            for (let r = 0; r < 6; r++) {
                 if (gameBoard[r][col] === 0) {
                     row = r;
                     break;
